@@ -19,7 +19,7 @@ module RequestMacros
   def valid_user_params(**args)
     {
       user: {
-        email: 'user@codehesion.co.za',
+        email: "user@fetza.test",
         password: 'Password1!',
         first_name: 'User',
         last_name: 'Name'

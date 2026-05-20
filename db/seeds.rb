@@ -22,7 +22,7 @@ else
     role: "admin",
     otp_secret_key: User.otp_random_secret,
     confirmed_at: Time.zone.now
-  ).find_or_create_by!(email: "user@codehesion.co.za")
+  ).find_or_create_by!(email: "user@fetza.test")
 
   users = []
   99.times do
@@ -51,7 +51,7 @@ else
 
   BILL_SEED_MODELS.each(&:delete_all)
 
-  seed_user = User.create_with(
+  User.create_with(
     first_name: "Katlego",
     last_name: "Mokoena",
     password: "Password1!",
@@ -59,6 +59,9 @@ else
     otp_secret_key: User.otp_random_secret,
     confirmed_at: Time.zone.now
   ).find_or_create_by!(email: "katlego@fetza.test")
+
+  # Mobile API uses User.first until auth exists; demo bills must belong to that user.
+  bill_owner = User.order(:id).first
 
   def assign_equal_split(receipt_item, participants)
     count = participants.size
@@ -113,6 +116,25 @@ else
     end
   end
 
+  RECEIPT_IMAGE_SEED_PATH = Rails.root.join("spec/fixtures/files/receipt.jpg").freeze
+
+  def create_receipt_image!(receipt:, position:, capture_type:)
+    receipt_image = ReceiptImage.new(
+      receipt: receipt,
+      position: position,
+      capture_type: capture_type
+    )
+
+    receipt_image.image.attach(
+      io: StringIO.new(File.binread(RECEIPT_IMAGE_SEED_PATH)),
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+
+    receipt_image.save!
+    receipt_image
+  end
+
   def update_receipt_totals!(receipt, merchant_name:, items:)
     adjustments = receipt.receipt_adjustments.reload
     subtotal_cents = items.sum(&:total_cents)
@@ -137,7 +159,7 @@ else
   end
 
   # Bill 1: Observatory Small Plates (partially assigned)
-  observatory_bill = Bill.create!(user: seed_user, status: :active, title: "Observatory Small Plates")
+  observatory_bill = Bill.create!(user: bill_owner, status: :active, title: "Observatory Small Plates")
   observatory_receipt = Receipt.create!(bill: observatory_bill, status: :confirmed)
 
   observatory_participants = [
@@ -190,7 +212,7 @@ else
   ])
   update_receipt_totals!(observatory_receipt, merchant_name: "Observatory Restaurant", items: observatory_items)
 
-  ReceiptImage.create!(receipt: observatory_receipt, position: 0, capture_type: "camera")
+  create_receipt_image!(receipt: observatory_receipt, position: 0, capture_type: "camera")
 
   ReceiptProcessingRun.create!(
     receipt: observatory_receipt,
@@ -212,7 +234,7 @@ else
   )
 
   # Bill 2: Friday Night Out (fully assigned)
-  friday_bill = Bill.create!(user: seed_user, status: :active, title: "Friday Night Out")
+  friday_bill = Bill.create!(user: bill_owner, status: :active, title: "Friday Night Out")
   friday_receipt = Receipt.create!(bill: friday_bill, status: :confirmed)
 
   friday_participants = [
@@ -275,8 +297,8 @@ else
   ])
   update_receipt_totals!(friday_receipt, merchant_name: "The Local Grill", items: friday_items)
 
-  ReceiptImage.create!(receipt: friday_receipt, position: 0, capture_type: "camera")
-  ReceiptImage.create!(receipt: friday_receipt, position: 1, capture_type: "gallery")
+  create_receipt_image!(receipt: friday_receipt, position: 0, capture_type: "camera")
+  create_receipt_image!(receipt: friday_receipt, position: 1, capture_type: "gallery")
 
   ReceiptProcessingRun.create!(
     receipt: friday_receipt,
@@ -297,6 +319,6 @@ else
   puts "Assignments:        #{ItemAssignment.count}"
   puts "  Observatory (#{observatory_bill.id}): #{observatory_items.count} items, #{ItemAssignment.where(receipt_item_id: observatory_items.map(&:id)).count} assignments (partial)"
   puts "  Friday Night Out (#{friday_bill.id}): #{friday_items.count} items, #{ItemAssignment.where(receipt_item_id: friday_items.map(&:id)).count} assignments (full)"
-  puts "Seed user:          #{seed_user.email}"
+  puts "Bill owner (User.first): #{bill_owner.email}"
   puts "-----------------------------------\n"
 end

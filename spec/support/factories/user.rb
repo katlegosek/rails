@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   sequence :email do |n|
-    "user+#{n}@codehesion.co.za"
+    "user+#{n}@fetza.test"
   end
 
   factory :user, class: User do

@@ -1,6 +1,6 @@
 # Bill Splitting API
 
-Rails backend skeleton for the bill-splitting app (Fetza), based on the Codehesion Rails view template.
+Rails backend for the Fetza bill-splitting app.
 
 ## Stack
 
