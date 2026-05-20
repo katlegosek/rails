@@ -48,7 +48,9 @@ Rails.application.routes.draw do
           resources :receipt_items, only: %i[create], controller: "receipt_items"
         end
         resources :bill_participants, only: %i[update destroy], controller: "bill_participants"
-        resources :receipt_items, only: %i[update destroy], controller: "receipt_items"
+        resources :receipt_items, only: %i[update destroy], controller: "receipt_items" do
+          resource :assignments, only: %i[update destroy], controller: "item_assignments"
+        end
       end
     end
   end
