@@ -14,4 +14,8 @@ class Api::Mobile::V1::BaseController < ApplicationController
   def render_not_found(message = "Bill not found")
     render json: { error: message }, status: :not_found
   end
+
+  def render_validation_errors(record)
+    render json: { errors: record.errors }, status: :unprocessable_content
+  end
 end

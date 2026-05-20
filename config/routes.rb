@@ -44,7 +44,11 @@ Rails.application.routes.draw do
           member do
             get :summary
           end
+          resources :participants, only: %i[create], controller: "bill_participants"
+          resources :receipt_items, only: %i[create], controller: "receipt_items"
         end
+        resources :bill_participants, only: %i[update destroy], controller: "bill_participants"
+        resources :receipt_items, only: %i[update destroy], controller: "receipt_items"
       end
     end
   end
