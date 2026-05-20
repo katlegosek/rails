@@ -17,6 +17,7 @@ class User < ApplicationRecord
 
   has_many :notifications_users, dependent: :destroy
   has_many :notifications, through: :notifications_users
+  has_many :bills, dependent: :destroy
 
   delegate :count, to: :unread_notifications, prefix: true
 
