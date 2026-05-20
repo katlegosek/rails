@@ -54,6 +54,10 @@ Rails.application.routes.draw do
         resources :receipt_items, only: %i[update destroy], controller: "receipt_items" do
           resource :assignments, only: %i[update destroy], controller: "item_assignments"
         end
+        resources :receipts, only: [] do
+          resources :adjustments, only: %i[create], controller: "receipt_adjustments"
+        end
+        resources :receipt_adjustments, only: %i[update destroy], controller: "receipt_adjustments"
       end
     end
   end
