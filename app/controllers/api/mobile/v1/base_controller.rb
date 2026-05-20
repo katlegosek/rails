@@ -10,7 +10,7 @@ class Api::Mobile::V1::BaseController < ApplicationController
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
   rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
   rescue_from ReceiptItems::ReplaceAssignments::Invalid, with: :handle_service_validation_error
-  rescue_from Api::Mobile::V1::BillAssignmentsController::Invalid, with: :handle_service_validation_error
+  rescue_from BillAssignments::Invalid, with: :handle_service_validation_error
 
   private
 

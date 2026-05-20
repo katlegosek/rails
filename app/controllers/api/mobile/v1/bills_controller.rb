@@ -19,7 +19,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
       )
       .find_by(id: params[:id])
 
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     render json: bill_show_json(bill)
   end
@@ -35,7 +35,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
       )
       .find_by(id: params[:id])
 
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     render json: Bills::Summary.call(bill)
   end

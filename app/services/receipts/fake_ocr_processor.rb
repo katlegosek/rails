@@ -108,7 +108,7 @@ module Receipts
         lines << format("%<label>-32s R%<amount>8.2f", label: adjustment[:label], amount: adjustment[:amount_cents] / 100.0)
       end
       lines << ""
-      lines << format("TOTAL%28s R%<amount>8.2f", amount: total_cents / 100.0)
+      lines << format("%<label>-33sR%<amount>8.2f", label: "TOTAL", amount: total_cents / 100.0)
       lines.join("\n")
     end
 

@@ -5,7 +5,7 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
 
   def create
     bill = find_bill_for_current_user
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     unless uploaded_image_param.present?
       return render_bad_request(

@@ -1,18 +1,9 @@
 # frozen_string_literal: true
 
 class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseController
-  class Invalid < StandardError
-    attr_reader :errors
-
-    def initialize(errors)
-      @errors = errors
-      super(errors.to_json)
-    end
-  end
-
   def split_all_equally
     bill = find_bill_for_current_user
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     apply_bulk_assignments(
       bill: bill,
@@ -24,7 +15,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
 
   def split_unassigned_equally
     bill = find_bill_for_current_user
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     unassigned_items = bill.receipt_items
       .includes(:item_assignments)
@@ -37,7 +28,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
 
   def clear
     bill = find_bill_for_current_user
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     apply_bulk_assignments(
       bill: bill,
@@ -75,7 +66,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
     errors[:participants] = [ "must have at least one participant" ] if bill.bill_participants.none?
     errors[:receipt_items] = [ "must have at least one receipt item" ] if bill.receipt_items.none?
 
-    raise Invalid, errors if errors.any?
+    raise BillAssignments::Invalid, errors if errors.any?
   end
 
   def render_bill_summary_response(bill)

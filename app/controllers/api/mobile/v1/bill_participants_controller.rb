@@ -3,7 +3,7 @@
 class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseController
   def create
     bill = find_bill_for_current_user(params[:bill_id])
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     participant = bill.bill_participants.build(participant_params)
 

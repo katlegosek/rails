@@ -3,7 +3,7 @@
 class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def create
     bill = find_bill_for_current_user(params[:bill_id])
-    return render_not_found unless bill
+    return render_not_found("Bill not found") unless bill
 
     attributes = prepared_receipt_item_attributes(bill, receipt_item_params)
     item = bill.receipt_items.build(attributes)

@@ -10,5 +10,5 @@ end
 
 RSpec.configure do |config|
   config.include_context "mobile api current user",
-    file_path: %r{spec/requests/api/mobile/v1}
+    file_path: %r{spec/requests/api/mobile/v1(?!/users)}
 end
