@@ -40,6 +40,7 @@ Rails.application.routes.draw do
     namespace :mobile do
       namespace :v1 do
         get "health", to: "health#show"
+        resources :bills, only: %i[index show]
       end
     end
   end
