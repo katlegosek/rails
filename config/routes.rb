@@ -49,12 +49,13 @@ Rails.application.routes.draw do
           end
           resources :participants, only: %i[create], controller: "bill_participants"
           resources :receipt_items, only: %i[create], controller: "receipt_items"
+          resources :receipt_images, only: %i[create], controller: "receipt_images"
         end
         resources :bill_participants, only: %i[update destroy], controller: "bill_participants"
         resources :receipt_items, only: %i[update destroy], controller: "receipt_items" do
           resource :assignments, only: %i[update destroy], controller: "item_assignments"
         end
-        resources :receipts, only: [] do
+        resources :receipts, only: %i[show] do
           resources :adjustments, only: %i[create], controller: "receipt_adjustments"
         end
         resources :receipt_adjustments, only: %i[update destroy], controller: "receipt_adjustments"

@@ -47,7 +47,21 @@ FactoryBot.define do
 
   factory :receipt_processing_run do
     receipt
-    provider { "openai" }
+    provider { "fake_ocr" }
     status { :pending }
+  end
+
+  factory :receipt_image do
+    receipt
+    sequence(:position)
+    capture_type { "full" }
+
+    after(:build) do |receipt_image|
+      receipt_image.image.attach(
+        io: File.open(Rails.root.join("spec/fixtures/files/receipt.jpg")),
+        filename: "receipt.jpg",
+        content_type: "image/jpeg"
+      )
+    end
   end
 end
