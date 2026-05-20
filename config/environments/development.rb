@@ -78,4 +78,6 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   config.hosts << /[a-z\-0-9]+\.ngrok-free\.app/
+  config.hosts << /[a-z\-0-9]+\.ngrok\.app/
+  config.hosts << /[a-z\-0-9]+\.ngrok\.io/
 end
