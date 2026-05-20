@@ -43,6 +43,9 @@ Rails.application.routes.draw do
         resources :bills, only: %i[index show] do
           member do
             get :summary
+            post :split_all_equally, to: "bill_assignments#split_all_equally"
+            post :split_unassigned_equally, to: "bill_assignments#split_unassigned_equally"
+            delete :assignments, to: "bill_assignments#clear"
           end
           resources :participants, only: %i[create], controller: "bill_participants"
           resources :receipt_items, only: %i[create], controller: "receipt_items"
