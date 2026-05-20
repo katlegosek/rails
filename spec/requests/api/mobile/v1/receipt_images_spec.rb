@@ -5,10 +5,7 @@ require "rails_helper"
 RSpec.describe "Api::Mobile::V1::ReceiptImages", type: :request do
   include ActiveJob::TestHelper
 
-  let!(:user) { create(:user) }
-
   before do
-    allow(User).to receive(:first).and_return(user)
     ActiveStorage::Current.url_options = { host: "www.example.com", protocol: "https" }
     Rails.application.routes.default_url_options[:host] = "www.example.com"
   end

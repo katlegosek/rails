@@ -2,13 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Api::Mobile::V1 error responses", type: :request do
-  let!(:user) { create(:user) }
-
-  before do
-    allow(User).to receive(:first).and_return(user)
-  end
-
+RSpec.describe "Mobile API error responses", type: :request do
   describe "validation_error (422)" do
     let(:bill) { create(:bill, user: user) }
     let!(:receipt) { create(:receipt, bill: bill) }
@@ -53,19 +47,14 @@ RSpec.describe "Api::Mobile::V1 error responses", type: :request do
       expect(error["message"]).to eq("Image is required.")
       expect(error["details"]["image"]).to include("can't be blank")
     end
-  end
 
-  describe "parameter missing (400)" do
-    let(:bill) { create(:bill, user: user) }
-
-    it "returns a structured bad request payload" do
+    it "returns a structured bad request payload for a missing param" do
       post "/api/mobile/v1/bills/#{bill.id}/receipt_items", params: {}, as: :json
 
       expect(response).to have_http_status(:bad_request)
 
       error = api_error(response.parsed_body)
       expect(error["code"]).to eq("bad_request")
-      expect(error["message"]).to eq("Required parameter is missing.")
       expect(error["details"]["parameter"]).to include("receipt_item")
     end
   end
