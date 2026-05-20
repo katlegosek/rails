@@ -16,8 +16,8 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   private
 
-  def current_user
-    @current_user ||= User.first
+  def current_mobile_user
+    @current_mobile_user ||= User.first
   end
 
   def render_api_error(code:, message:, status:, details: nil)

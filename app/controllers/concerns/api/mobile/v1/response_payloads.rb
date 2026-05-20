@@ -12,7 +12,7 @@ module Api::Mobile::V1::ResponsePayloads
       id: bill.id,
       title: bill.display_title,
       status: bill.status,
-      total_cents: bill.total_cents,
+      total_cents: Bills::Summary.bill_total_cents_for(bill),
       participants_count: bill.bill_participants.size,
       receipt_name: bill.receipt_name,
       receipt_date: bill.receipt_date,
@@ -25,7 +25,7 @@ module Api::Mobile::V1::ResponsePayloads
       id: bill.id,
       title: bill.display_title,
       status: bill.status,
-      total_cents: bill.total_cents,
+      total_cents: Bills::Summary.bill_total_cents_for(bill),
       receipt_name: bill.receipt_name,
       receipt_date: bill.receipt_date,
       created_at: bill.created_at,
@@ -150,7 +150,7 @@ module Api::Mobile::V1::ResponsePayloads
   end
 
   def bill_for_summary(bill)
-    current_user.bills
+    current_mobile_user.bills
       .includes(
         :receipt_items,
         :bill_participants,

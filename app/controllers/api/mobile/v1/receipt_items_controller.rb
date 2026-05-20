@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def create
-    bill = find_bill_for_current_user(params[:bill_id])
+    bill = find_bill_for_current_mobile_user(params[:bill_id])
     return render_not_found("Bill not found") unless bill
 
     attributes = prepared_receipt_item_attributes(bill, receipt_item_params)
@@ -17,7 +17,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   end
 
   def update
-    item = find_receipt_item_for_current_user
+    item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless item
 
     attributes = prepared_receipt_item_attributes(item.bill, receipt_item_params, item: item)
@@ -30,7 +30,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   end
 
   def destroy
-    item = find_receipt_item_for_current_user
+    item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless item
 
     bill = item.bill
@@ -45,14 +45,14 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
 
   private
 
-  def find_bill_for_current_user(bill_id)
-    current_user.bills.find_by(id: bill_id)
+  def find_bill_for_current_mobile_user(bill_id)
+    current_mobile_user.bills.find_by(id: bill_id)
   end
 
-  def find_receipt_item_for_current_user
+  def find_receipt_item_for_current_mobile_user
     ReceiptItem
       .joins(:bill)
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:id])
   end
 

@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseController
   def create
-    receipt = find_receipt_for_current_user
+    receipt = find_receipt_for_current_mobile_user
     return render_not_found("Receipt not found") unless receipt
 
     adjustment = receipt.receipt_adjustments.build(adjustment_attributes_for_create(receipt))
@@ -15,7 +15,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   end
 
   def update
-    adjustment = find_adjustment_for_current_user
+    adjustment = find_adjustment_for_current_mobile_user
     return render_not_found("Receipt adjustment not found") unless adjustment
 
     if adjustment.update(adjustment_params)
@@ -26,7 +26,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   end
 
   def destroy
-    adjustment = find_adjustment_for_current_user
+    adjustment = find_adjustment_for_current_mobile_user
     return render_not_found("Receipt adjustment not found") unless adjustment
 
     bill = adjustment.receipt.bill
@@ -41,17 +41,17 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
 
   private
 
-  def find_receipt_for_current_user
+  def find_receipt_for_current_mobile_user
     Receipt
       .joins(:bill)
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:receipt_id])
   end
 
-  def find_adjustment_for_current_user
+  def find_adjustment_for_current_mobile_user
     ReceiptAdjustment
       .joins(receipt: :bill)
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:id])
   end
 

@@ -32,11 +32,6 @@ class Bill < ApplicationRecord
   def receipt_date
     receipt&.receipt_date || receipt&.created_at&.to_date
   end
-
-  def total_cents
-    Bills::Summary.bill_total_cents_for(self)
-  end
-
   def latest_receipt_processing_run
     return unless receipt
 

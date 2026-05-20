@@ -30,19 +30,18 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
     bill = find_bill_for_current_user
     return render_not_found("Bill not found") unless bill
 
-    apply_bulk_assignments(
-      bill: bill,
-      receipt_items: bill.receipt_items.includes(:item_assignments),
-      participant_ids: []
-    )
-
+    clear_assignments!(bill)
     render_bill_summary_response(bill)
   end
 
   private
 
   def find_bill_for_current_user
-    current_user.bills.find_by(id: params[:id])
+    current_mobile_user.bills.find_by(id: params[:id])
+  end
+
+  def clear_assignments!(bill)
+    ItemAssignment.joins(:receipt_item).where(receipt_items: { bill_id: bill.id }).delete_all
   end
 
   def apply_bulk_assignments(bill:, receipt_items:, participant_ids: nil)

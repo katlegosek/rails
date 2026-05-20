@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseController
   def update
-    receipt_item = find_receipt_item_for_current_user
+    receipt_item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless receipt_item
 
     ReceiptItems::ReplaceAssignments.call(
@@ -15,7 +15,7 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
   end
 
   def destroy
-    receipt_item = find_receipt_item_for_current_user
+    receipt_item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless receipt_item
 
     ReceiptItems::ReplaceAssignments.call(
@@ -29,10 +29,10 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
 
   private
 
-  def find_receipt_item_for_current_user
+  def find_receipt_item_for_current_mobile_user
     ReceiptItem
       .joins(:bill)
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:receipt_item_id])
   end
 

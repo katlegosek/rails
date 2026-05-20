@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseController
   def create
-    bill = find_bill_for_current_user(params[:bill_id])
+    bill = find_bill_for_current_mobile_user(params[:bill_id])
     return render_not_found("Bill not found") unless bill
 
     participant = bill.bill_participants.build(participant_params)
@@ -15,7 +15,7 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
   end
 
   def update
-    participant = find_participant_for_current_user
+    participant = find_participant_for_current_mobile_user
     return render_not_found("Participant not found") unless participant
 
     if participant.update(participant_params)
@@ -26,7 +26,7 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
   end
 
   def destroy
-    participant = find_participant_for_current_user
+    participant = find_participant_for_current_mobile_user
     return render_not_found("Participant not found") unless participant
 
     bill = participant.bill
@@ -41,14 +41,14 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
 
   private
 
-  def find_bill_for_current_user(bill_id)
-    current_user.bills.find_by(id: bill_id)
+  def find_bill_for_current_mobile_user(bill_id)
+    current_mobile_user.bills.find_by(id: bill_id)
   end
 
-  def find_participant_for_current_user
+  def find_participant_for_current_mobile_user
     BillParticipant
       .joins(:bill)
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:id])
   end
 

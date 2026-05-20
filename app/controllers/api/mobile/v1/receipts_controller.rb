@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
   def show
-    receipt = find_receipt_for_current_user
+    receipt = find_receipt_for_current_mobile_user
     return render_not_found("Receipt not found") unless receipt
 
     render json: receipt_show_json(receipt)
@@ -10,7 +10,7 @@ class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
 
   private
 
-  def find_receipt_for_current_user
+  def find_receipt_for_current_mobile_user
     Receipt
       .joins(:bill)
       .includes(
@@ -18,7 +18,7 @@ class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
         :receipt_processing_runs,
         bill: :receipt_items
       )
-      .where(bills: { user_id: current_user.id })
+      .where(bills: { user_id: current_mobile_user.id })
       .find_by(id: params[:id])
   end
 

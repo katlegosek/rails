@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   def index
-    bills = current_user.bills
+    bills = current_mobile_user.bills
       .includes(:bill_participants, receipt: :receipt_processing_runs)
       .order(created_at: :desc)
 
@@ -10,7 +10,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   end
 
   def show
-    bill = current_user.bills
+    bill = current_mobile_user.bills
       .includes(
         :receipt_items,
         :bill_participants,
@@ -25,7 +25,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   end
 
   def summary
-    bill = current_user.bills
+    bill = current_mobile_user.bills
       .includes(
         :receipt_items,
         :bill_participants,

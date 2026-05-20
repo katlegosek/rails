@@ -2,7 +2,7 @@
 
 class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
   def create
-    bill = find_bill_for_current_user
+    bill = find_bill_for_current_mobile_user
     return render_not_found("Bill not found") unless bill
 
     unless uploaded_image_param.present?
@@ -37,8 +37,8 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
 
   private
 
-  def find_bill_for_current_user
-    current_user.bills.find_by(id: params[:bill_id])
+  def find_bill_for_current_mobile_user
+    current_mobile_user.bills.find_by(id: params[:bill_id])
   end
 
   def uploaded_image_param
