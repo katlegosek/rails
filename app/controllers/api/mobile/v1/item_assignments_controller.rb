@@ -12,8 +12,6 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
     )
 
     render_receipt_item_response(receipt_item)
-  rescue ReceiptItems::ReplaceAssignments::Invalid => e
-    render json: { errors: e.errors }, status: :unprocessable_content
   end
 
   def destroy
@@ -27,8 +25,6 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
     )
 
     render_receipt_item_response(receipt_item)
-  rescue ReceiptItems::ReplaceAssignments::Invalid => e
-    render json: { errors: e.errors }, status: :unprocessable_content
   end
 
   private

@@ -50,8 +50,9 @@ RSpec.describe "Api::Mobile::V1::ReceiptImages", type: :request do
     it "returns validation errors when the image is missing" do
       post "/api/mobile/v1/bills/#{bill.id}/receipt_images", params: {}
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]["image"]).to include("can't be blank")
+      expect(response).to have_http_status(:bad_request)
+      expect(api_error(response.parsed_body)["code"]).to eq("bad_request")
+      expect(api_error(response.parsed_body)["details"]["image"]).to include("can't be blank")
     end
 
     it "returns not found for another user's bill" do
@@ -62,7 +63,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptImages", type: :request do
       }
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
 
     it "completes fake OCR processing via the background job" do

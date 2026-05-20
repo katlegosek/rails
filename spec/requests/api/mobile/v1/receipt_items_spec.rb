@@ -75,7 +75,8 @@ RSpec.describe "Api::Mobile::V1::ReceiptItems", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]).to be_present
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(api_error(response.parsed_body)["details"]).to be_present
     end
 
     it "returns not found when the bill belongs to another user" do
@@ -86,7 +87,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptItems", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
   end
 
@@ -121,7 +122,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptItems", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Receipt item not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Receipt item not found")
     end
   end
 
@@ -153,7 +154,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptItems", type: :request do
       delete "/api/mobile/v1/receipt_items/#{other_item.id}"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Receipt item not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Receipt item not found")
     end
   end
 end

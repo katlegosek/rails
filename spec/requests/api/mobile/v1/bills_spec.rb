@@ -109,7 +109,7 @@ RSpec.describe "Api::Mobile::V1::Bills", type: :request do
       get "/api/mobile/v1/bills/0"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
 
     it "returns not found when the bill belongs to another user" do
@@ -118,7 +118,7 @@ RSpec.describe "Api::Mobile::V1::Bills", type: :request do
       get "/api/mobile/v1/bills/#{other_bill.id}"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
   end
 
@@ -168,7 +168,7 @@ RSpec.describe "Api::Mobile::V1::Bills", type: :request do
       get "/api/mobile/v1/bills/0/summary"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
   end
 end

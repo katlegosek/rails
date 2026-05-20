@@ -59,7 +59,8 @@ RSpec.describe "Api::Mobile::V1::ReceiptAdjustments", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]).to be_present
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(api_error(response.parsed_body)["details"]).to be_present
     end
 
     it "returns not found for another user's receipt" do
@@ -70,7 +71,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptAdjustments", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Receipt not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Receipt not found")
     end
   end
 
@@ -106,7 +107,7 @@ RSpec.describe "Api::Mobile::V1::ReceiptAdjustments", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Receipt adjustment not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Receipt adjustment not found")
     end
   end
 

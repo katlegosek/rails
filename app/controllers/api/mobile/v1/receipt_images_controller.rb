@@ -8,7 +8,10 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
     return render_not_found unless bill
 
     unless uploaded_image_param.present?
-      return render json: { errors: { image: [ "can't be blank" ] } }, status: :unprocessable_content
+      return render_bad_request(
+        message: "Image is required.",
+        details: { image: [ "can't be blank" ] }
+      )
     end
 
     receipt = bill.receipt || bill.create_receipt!(status: :draft)

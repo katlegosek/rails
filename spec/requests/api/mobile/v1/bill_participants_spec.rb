@@ -58,7 +58,8 @@ RSpec.describe "Api::Mobile::V1::BillParticipants", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]).to be_present
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(api_error(response.parsed_body)["details"]).to be_present
     end
 
     it "returns not found when the bill belongs to another user" do
@@ -69,7 +70,7 @@ RSpec.describe "Api::Mobile::V1::BillParticipants", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
   end
 
@@ -117,7 +118,7 @@ RSpec.describe "Api::Mobile::V1::BillParticipants", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Participant not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Participant not found")
     end
   end
 
@@ -147,7 +148,7 @@ RSpec.describe "Api::Mobile::V1::BillParticipants", type: :request do
       delete "/api/mobile/v1/bill_participants/#{other_participant.id}"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Participant not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Participant not found")
     end
   end
 end

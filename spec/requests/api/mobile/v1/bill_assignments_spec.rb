@@ -37,7 +37,8 @@ RSpec.describe "Api::Mobile::V1::BillAssignments", type: :request do
       post "/api/mobile/v1/bills/#{empty_bill.id}/split_all_equally"
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]["participants"]).to include("must have at least one participant")
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(api_error(response.parsed_body)["details"]["participants"]).to include("must have at least one participant")
     end
 
     it "returns validation errors when the bill has no receipt items" do
@@ -47,7 +48,7 @@ RSpec.describe "Api::Mobile::V1::BillAssignments", type: :request do
       post "/api/mobile/v1/bills/#{empty_bill.id}/split_all_equally"
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"]["receipt_items"]).to include("must have at least one receipt item")
+      expect(api_error(response.parsed_body)["details"]["receipt_items"]).to include("must have at least one receipt item")
     end
   end
 
@@ -104,7 +105,7 @@ RSpec.describe "Api::Mobile::V1::BillAssignments", type: :request do
       delete "/api/mobile/v1/bills/#{other_bill.id}/assignments"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Bill not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
   end
 end

@@ -20,8 +20,6 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
     )
 
     render_bill_summary_response(bill)
-  rescue Invalid, ReceiptItems::ReplaceAssignments::Invalid => e
-    render json: { errors: e.errors }, status: :unprocessable_content
   end
 
   def split_unassigned_equally
@@ -35,8 +33,6 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
     apply_bulk_assignments(bill: bill, receipt_items: unassigned_items)
 
     render_bill_summary_response(bill)
-  rescue Invalid, ReceiptItems::ReplaceAssignments::Invalid => e
-    render json: { errors: e.errors }, status: :unprocessable_content
   end
 
   def clear
@@ -50,8 +46,6 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
     )
 
     render_bill_summary_response(bill)
-  rescue Invalid, ReceiptItems::ReplaceAssignments::Invalid => e
-    render json: { errors: e.errors }, status: :unprocessable_content
   end
 
   private

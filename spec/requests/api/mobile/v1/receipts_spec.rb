@@ -47,7 +47,7 @@ RSpec.describe "Api::Mobile::V1::Receipts", type: :request do
       get "/api/mobile/v1/receipts/#{other_receipt.id}"
 
       expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body).to eq("error" => "Receipt not found")
+      expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Receipt not found")
     end
   end
 end
