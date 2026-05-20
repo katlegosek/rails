@@ -16,6 +16,7 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   private
 
+  # TODO(production): Replace User.first with real auth (Doorkeeper/JWT). See docs/DEV_ONLY_TODOS.md
   def current_mobile_user
     @current_mobile_user ||= User.first
   end

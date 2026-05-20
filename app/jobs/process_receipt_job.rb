@@ -13,6 +13,7 @@ class ProcessReceiptJob < ApplicationJob
     receipt.processing!
     processing_run.update!(status: :processing, started_at: Time.current)
 
+    # TODO(production): Replace FakeOcrProcessor with real OCR provider. See docs/DEV_ONLY_TODOS.md
     Receipts::FakeOcrProcessor.call(receipt, processing_run: processing_run)
 
     receipt.ready!
