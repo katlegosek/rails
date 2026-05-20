@@ -24,6 +24,22 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
     render json: bill_show_json(bill)
   end
 
+  def summary
+    bill = current_user.bills
+      .includes(
+        :receipt_items,
+        :bill_participants,
+        receipt: :receipt_adjustments,
+        receipt_items: :item_assignments,
+        bill_participants: :item_assignments
+      )
+      .find_by(id: params[:id])
+
+    return render_not_found unless bill
+
+    render json: Bills::Summary.call(bill)
+  end
+
   private
 
   def bill_index_json(bill)

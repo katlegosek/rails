@@ -17,4 +17,10 @@ class Receipt < ApplicationRecord
   }, default: :draft
 
   validates :status, presence: true
+
+  def stored_total_cents
+    return unless has_attribute?(:total_cents)
+
+    self[:total_cents]
+  end
 end

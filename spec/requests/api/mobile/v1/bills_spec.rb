@@ -121,4 +121,54 @@ RSpec.describe "Api::Mobile::V1::Bills", type: :request do
       expect(response.parsed_body).to eq("error" => "Bill not found")
     end
   end
+
+  describe "GET /api/mobile/v1/bills/:id/summary" do
+    it "returns the bill summary payload" do
+      bill = create(:bill, user: user, status: :active)
+      receipt = create(:receipt, bill: bill, status: :confirmed)
+      participant = create(:bill_participant, bill: bill, name: "Katlego", settled: false, seat_index: 0)
+      item = create(:receipt_item, bill: bill, receipt: receipt, name: "Burrata", unit_price_cents: 9_500, total_cents: 9_500, position: 0)
+      create(:item_assignment, receipt_item: item, bill_participant: participant, amount_cents: 9_500, split_method: :custom)
+      create(
+        :receipt_processing_run,
+        receipt: receipt,
+        status: :completed,
+        raw_ai_response: { title: "Friday Night Out", merchant: "The Local Grill" }
+      )
+
+      get "/api/mobile/v1/bills/#{bill.id}/summary"
+
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+
+      expect(body["bill"]).to include(
+        "id" => bill.id,
+        "title" => "Friday Night Out",
+        "status" => "active",
+        "total_cents" => 9_500,
+        "items_count" => 1,
+        "assigned_items_count" => 1,
+        "unassigned_items_count" => 0
+      )
+      expect(body["totals"]).to include(
+        "bill_total_cents" => 9_500,
+        "assigned_total_cents" => 9_500,
+        "unassigned_total_cents" => 0,
+        "outstanding_total_cents" => 9_500,
+        "settled_total_cents" => 0
+      )
+      expect(body["participants"].first).to include(
+        "name" => "Katlego",
+        "amount_due_cents" => 9_500,
+        "assigned_items_count" => 1
+      )
+    end
+
+    it "returns consistent error JSON when the bill is not found" do
+      get "/api/mobile/v1/bills/0/summary"
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.parsed_body).to eq("error" => "Bill not found")
+    end
+  end
 end
