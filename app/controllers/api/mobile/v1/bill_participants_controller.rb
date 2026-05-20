@@ -30,12 +30,12 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
     return render_not_found("Participant not found") unless participant
 
     bill = participant.bill
-    participant_json = participant_payload(participant)
+    participant_json = bill_participant_payload(participant)
     participant.destroy!
 
     render json: {
       participant: participant_json,
-      bill_summary: bill_summary_for(bill)
+      bill_summary: bill_summary_payload(bill)
     }
   end
 
@@ -66,40 +66,8 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
 
   def render_participant_response(participant, bill, status: :ok)
     render json: {
-      participant: participant_payload(participant),
-      bill_summary: bill_summary_for(bill)
+      participant: bill_participant_payload(participant),
+      bill_summary: bill_summary_payload(bill)
     }, status: status
-  end
-
-  def participant_payload(participant)
-    {
-      id: participant.id,
-      bill_id: participant.bill_id,
-      name: participant.name,
-      initials: participant.initials,
-      avatar_background_color: participant.avatar_background_color,
-      avatar_text_color: participant.avatar_text_color,
-      seat_index: participant.seat_index,
-      is_host: participant.is_host,
-      settled: participant.settled,
-      created_at: participant.created_at,
-      updated_at: participant.updated_at
-    }
-  end
-
-  def bill_summary_for(bill)
-    Bills::Summary.call(bill_for_summary(bill))
-  end
-
-  def bill_for_summary(bill)
-    current_user.bills
-      .includes(
-        :receipt_items,
-        :bill_participants,
-        receipt: :receipt_adjustments,
-        receipt_items: :item_assignments,
-        bill_participants: :item_assignments
-      )
-      .find(bill.id)
   end
 end

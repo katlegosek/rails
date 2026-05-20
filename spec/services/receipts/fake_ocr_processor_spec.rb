@@ -12,6 +12,9 @@ RSpec.describe Receipts::FakeOcrProcessor do
 
     expect(receipt.receipt_items.count).to be_between(6, 8)
     expect(receipt.receipt_adjustments.count).to eq(3)
+    expect(receipt.reload.merchant_name).to eq("Observatory Small Plates")
+    expect(receipt.total_cents).to be_positive
+    expect(bill.reload.title).to eq("Observatory Small Plates")
     expect(processing_run.reload.raw_ocr_text).to include("Observatory Small Plates")
     expect(processing_run.raw_ai_response["merchant"]).to eq("Observatory Small Plates")
   end

@@ -30,12 +30,12 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
     return render_not_found("Receipt adjustment not found") unless adjustment
 
     bill = adjustment.receipt.bill
-    adjustment_json = adjustment_payload(adjustment)
+    adjustment_json = receipt_adjustment_payload(adjustment)
     adjustment.destroy!
 
     render json: {
       receipt_adjustment: adjustment_json,
-      bill_summary: bill_summary_for(bill)
+      bill_summary: bill_summary_payload(bill)
     }
   end
 
@@ -60,7 +60,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
       :label,
       :kind,
       :amount_cents,
-      :included_in_total,
+      :affects_total,
       :position
     )
   end
@@ -68,8 +68,8 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   def adjustment_attributes_for_create(receipt)
     attributes = adjustment_params.to_h
 
-    unless receipt_adjustment_key?(:included_in_total)
-      attributes[:included_in_total] = false
+    unless receipt_adjustment_key?(:affects_total)
+      attributes[:affects_total] = false
     end
 
     if attributes[:position].blank?
@@ -86,38 +86,8 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
 
   def render_adjustment_response(adjustment, bill, status: :ok)
     render json: {
-      receipt_adjustment: adjustment_payload(adjustment),
-      bill_summary: bill_summary_for(bill)
+      receipt_adjustment: receipt_adjustment_payload(adjustment),
+      bill_summary: bill_summary_payload(bill)
     }, status: status
-  end
-
-  def adjustment_payload(adjustment)
-    {
-      id: adjustment.id,
-      receipt_id: adjustment.receipt_id,
-      label: adjustment.label,
-      kind: adjustment.kind,
-      amount_cents: adjustment.amount_cents,
-      included_in_total: adjustment.included_in_total,
-      position: adjustment.position,
-      created_at: adjustment.created_at,
-      updated_at: adjustment.updated_at
-    }
-  end
-
-  def bill_summary_for(bill)
-    Bills::Summary.call(bill_for_summary(bill))
-  end
-
-  def bill_for_summary(bill)
-    current_user.bills
-      .includes(
-        :receipt_items,
-        :bill_participants,
-        receipt: :receipt_adjustments,
-        receipt_items: :item_assignments,
-        bill_participants: :item_assignments
-      )
-      .find(bill.id)
   end
 end

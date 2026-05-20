@@ -32,6 +32,7 @@ module Receipts
         clear_extracted_data
         create_receipt_items(extracted[:items])
         create_receipt_adjustments(extracted[:adjustments])
+        update_receipt_and_bill(extracted)
         update_processing_run(extracted)
       end
 
@@ -68,18 +69,22 @@ module Receipts
       subtotal_cents = items.sum { |item| item[:total_cents] }
       service_fee_cents = (subtotal_cents * 0.10).round
       vat_cents = (subtotal_cents * 0.15).round
-      total_cents = subtotal_cents + service_fee_cents + vat_cents
+      total_cents = subtotal_cents + service_fee_cents
 
       adjustments = [
-        { label: "Subtotal", kind: :subtotal, amount_cents: subtotal_cents, included_in_total: false, position: 0 },
-        { label: "Service charge (10%)", kind: :service_fee, amount_cents: service_fee_cents, included_in_total: true, position: 1 },
-        { label: "VAT (15%)", kind: :tax, amount_cents: vat_cents, included_in_total: true, position: 2 }
+        { label: "Subtotal", kind: :subtotal, amount_cents: subtotal_cents, affects_total: false, position: 0 },
+        { label: "Service charge (10%)", kind: :service_fee, amount_cents: service_fee_cents, affects_total: true, position: 1 },
+        { label: "VAT (15%)", kind: :tax, amount_cents: vat_cents, affects_total: false, position: 2 }
       ]
 
       {
         restaurant_name: RESTAURANT_NAME,
         subtotal_cents: subtotal_cents,
+        service_fee_cents: service_fee_cents,
+        tax_cents: vat_cents,
         total_cents: total_cents,
+        currency: "ZAR",
+        receipt_date: Date.current,
         items: items,
         adjustments: adjustments,
         raw_ocr_text: build_raw_ocr_text(items, adjustments, total_cents),
@@ -122,6 +127,20 @@ module Receipts
       adjustments.each do |attrs|
         receipt.receipt_adjustments.create!(attrs)
       end
+    end
+
+    def update_receipt_and_bill(extracted)
+      receipt.update!(
+        merchant_name: extracted[:restaurant_name],
+        receipt_date: extracted[:receipt_date],
+        subtotal_cents: extracted[:subtotal_cents],
+        service_fee_cents: extracted[:service_fee_cents],
+        tax_cents: extracted[:tax_cents],
+        total_cents: extracted[:total_cents],
+        currency: extracted[:currency]
+      )
+
+      bill.update!(title: extracted[:restaurant_name])
     end
 
     def update_processing_run(extracted)

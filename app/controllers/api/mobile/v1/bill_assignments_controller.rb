@@ -70,22 +70,6 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
   end
 
   def render_bill_summary_response(bill)
-    render json: { bill_summary: bill_summary_for(bill) }
-  end
-
-  def bill_summary_for(bill)
-    Bills::Summary.call(bill_for_summary(bill))
-  end
-
-  def bill_for_summary(bill)
-    current_user.bills
-      .includes(
-        :receipt_items,
-        :bill_participants,
-        receipt: :receipt_adjustments,
-        receipt_items: :item_assignments,
-        bill_participants: :item_assignments
-      )
-      .find(bill.id)
+    render json: { bill_summary: bill_summary_payload(bill) }
   end
 end

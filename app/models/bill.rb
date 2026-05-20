@@ -19,36 +19,44 @@ class Bill < ApplicationRecord
   validates :status, presence: true
 
   def display_title
-    ai_response = latest_receipt_processing_run&.raw_ai_response
-    return "Untitled bill" if ai_response.blank?
-
-    response = ai_response.respond_to?(:with_indifferent_access) ? ai_response.with_indifferent_access : ai_response
-    response[:title].presence || response[:merchant].presence || "Untitled bill"
+    title.presence ||
+      receipt&.merchant_name.presence ||
+      ocr_title_fallback.presence ||
+      "Untitled bill"
   end
 
   def receipt_name
-    ai_response = latest_receipt_processing_run&.raw_ai_response
-    return nil if ai_response.blank?
-
-    response = ai_response.respond_to?(:with_indifferent_access) ? ai_response.with_indifferent_access : ai_response
-    response[:merchant].presence || display_title
+    receipt&.merchant_name.presence || ocr_merchant_fallback || display_title
   end
 
   def receipt_date
-    receipt&.created_at
+    receipt&.receipt_date || receipt&.created_at&.to_date
   end
 
   def total_cents
-    items_total = receipt_items.sum(:total_cents)
-    return items_total unless receipt
-
-    adjustments_total = receipt.receipt_adjustments.where(included_in_total: true).sum(:amount_cents)
-    items_total + adjustments_total
+    Bills::Summary.bill_total_cents_for(self)
   end
 
   def latest_receipt_processing_run
     return unless receipt
 
     receipt.receipt_processing_runs.order(Arel.sql("completed_at DESC NULLS LAST"), created_at: :desc).first
+  end
+
+  private
+
+  def ocr_title_fallback
+    ocr_response[:title].presence || ocr_response[:merchant].presence
+  end
+
+  def ocr_merchant_fallback
+    ocr_response[:merchant].presence
+  end
+
+  def ocr_response
+    ai_response = latest_receipt_processing_run&.raw_ai_response
+    return {} if ai_response.blank?
+
+    ai_response.respond_to?(:with_indifferent_access) ? ai_response.with_indifferent_access : ai_response
   end
 end

@@ -6,6 +6,10 @@ module Bills
       new(bill).call
     end
 
+    def self.bill_total_cents_for(bill)
+      new(bill).bill_total_cents
+    end
+
     def initialize(bill)
       @bill = bill
     end
@@ -19,9 +23,16 @@ module Bills
       }
     end
 
-    private
-
     attr_reader :bill
+
+    def bill_total_cents
+      stored_receipt_total = bill.receipt&.stored_total_cents
+      return stored_receipt_total if stored_receipt_total
+
+      calculated_bill_total_cents
+    end
+
+    private
 
     def bill_payload
       {
@@ -71,28 +82,21 @@ module Bills
           label: adjustment.label,
           kind: adjustment.kind,
           amount_cents: adjustment.amount_cents,
-          included_in_total: adjustment.included_in_total,
+          affects_total: adjustment.affects_total,
           position: adjustment.position
         }
       end
-    end
-
-    def bill_total_cents
-      stored_receipt_total = bill.receipt&.stored_total_cents
-      return stored_receipt_total if stored_receipt_total.present?
-
-      calculated_bill_total_cents
     end
 
     def calculated_bill_total_cents
       items_total = receipt_items.sum(&:total_cents)
       return items_total unless bill.receipt
 
-      non_included_adjustments_total = receipt_adjustments
-        .reject(&:included_in_total)
+      affecting_adjustments_total = receipt_adjustments
+        .select(&:affects_total)
         .sum(&:amount_cents)
 
-      items_total + non_included_adjustments_total
+      items_total + affecting_adjustments_total
     end
 
     def assigned_total_cents

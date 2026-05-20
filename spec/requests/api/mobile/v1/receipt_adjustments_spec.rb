@@ -17,7 +17,7 @@ RSpec.describe "Receipt adjustments API", type: :request do
       expect(body["receipt_adjustment"]).to include(
         "receipt_id" => receipt.id,
         "kind" => "tax",
-        "included_in_total" => false
+        "affects_total" => false
       )
       expect(body["bill_summary"]["receipt_adjustments"].size).to eq(1)
     end

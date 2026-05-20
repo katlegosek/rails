@@ -4,11 +4,17 @@ FactoryBot.define do
   factory :bill do
     user
     status { :draft }
+    title { "Test Bill" }
   end
 
   factory :receipt do
     bill
     status { :draft }
+    merchant_name { "Test Restaurant" }
+    receipt_date { Date.current }
+    subtotal_cents { 0 }
+    total_cents { 0 }
+    currency { "ZAR" }
   end
 
   factory :receipt_item do
@@ -26,7 +32,7 @@ FactoryBot.define do
     sequence(:label) { |n| "Adjustment #{n}" }
     kind { :other }
     amount_cents { 100 }
-    included_in_total { true }
+    affects_total { false }
     sequence(:position)
   end
 

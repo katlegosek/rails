@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   create_table "bills", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "status", default: "draft", null: false
+    t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["status"], name: "index_bills_on_status"
@@ -137,9 +138,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   end
 
   create_table "receipt_adjustments", force: :cascade do |t|
+    t.boolean "affects_total", default: false, null: false
     t.integer "amount_cents", null: false
     t.datetime "created_at", null: false
-    t.boolean "included_in_total", default: true, null: false
     t.string "kind", null: false
     t.string "label", null: false
     t.integer "position", default: 0, null: false
@@ -197,7 +198,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   create_table "receipts", force: :cascade do |t|
     t.bigint "bill_id", null: false
     t.datetime "created_at", null: false
+    t.string "currency", default: "ZAR", null: false
+    t.integer "discount_cents", default: 0, null: false
+    t.string "merchant_name"
+    t.date "receipt_date"
+    t.integer "service_fee_cents", default: 0, null: false
     t.string "status", default: "draft", null: false
+    t.integer "subtotal_cents", default: 0, null: false
+    t.integer "tax_cents", default: 0, null: false
+    t.integer "tip_cents", default: 0, null: false
+    t.integer "total_cents", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["bill_id"], name: "index_receipts_on_bill_id", unique: true
     t.index ["status"], name: "index_receipts_on_status"

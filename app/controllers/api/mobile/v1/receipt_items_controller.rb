@@ -39,7 +39,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
 
     render json: {
       receipt_item: item_json,
-      bill_summary: bill_summary_for(bill)
+      bill_summary: bill_summary_payload(bill)
     }
   end
 
@@ -92,41 +92,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def render_receipt_item_response(item, bill, status: :ok)
     render json: {
       receipt_item: receipt_item_payload(item),
-      bill_summary: bill_summary_for(bill)
+      bill_summary: bill_summary_payload(bill)
     }, status: status
-  end
-
-  def receipt_item_payload(item)
-    {
-      id: item.id,
-      bill_id: item.bill_id,
-      receipt_id: item.receipt_id,
-      name: item.name,
-      quantity: item.quantity.to_f,
-      unit_price_cents: item.unit_price_cents,
-      total_cents: item.total_cents,
-      category: item.category,
-      icon_key: item.icon_key,
-      position: item.position,
-      confidence: item.confidence&.to_f,
-      created_at: item.created_at,
-      updated_at: item.updated_at
-    }
-  end
-
-  def bill_summary_for(bill)
-    Bills::Summary.call(bill_for_summary(bill))
-  end
-
-  def bill_for_summary(bill)
-    current_user.bills
-      .includes(
-        :receipt_items,
-        :bill_participants,
-        receipt: :receipt_adjustments,
-        receipt_items: :item_assignments,
-        bill_participants: :item_assignments
-      )
-      .find(bill.id)
   end
 end

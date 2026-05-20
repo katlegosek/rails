@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
-  include Rails.application.routes.url_helpers
-
   def create
     bill = find_bill_for_current_user
     return render_not_found("Bill not found") unless bill
@@ -31,10 +29,7 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
     ProcessReceiptJob.perform_later(receipt.id)
 
     render json: {
-      receipt: {
-        id: receipt.id,
-        status: receipt.status
-      },
+      receipt: receipt_status_payload(receipt),
       receipt_image: receipt_image_payload(receipt_image),
       processing_run: processing_run_payload(processing_run)
     }, status: :created
@@ -61,30 +56,5 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
     return requested_position.to_i if requested_position.present?
 
     (receipt.receipt_images.maximum(:position) || -1) + 1
-  end
-
-  def receipt_image_payload(receipt_image)
-    {
-      id: receipt_image.id,
-      receipt_id: receipt_image.receipt_id,
-      position: receipt_image.position,
-      capture_type: receipt_image.capture_type,
-      image_url: receipt_image.image.attached? ? url_for(receipt_image.image) : nil,
-      created_at: receipt_image.created_at,
-      updated_at: receipt_image.updated_at
-    }
-  end
-
-  def processing_run_payload(processing_run)
-    {
-      id: processing_run.id,
-      receipt_id: processing_run.receipt_id,
-      provider: processing_run.provider,
-      status: processing_run.status,
-      started_at: processing_run.started_at,
-      completed_at: processing_run.completed_at,
-      created_at: processing_run.created_at,
-      updated_at: processing_run.updated_at
-    }
   end
 end
