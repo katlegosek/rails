@@ -25,6 +25,24 @@ RSpec.describe "Bills API", type: :request do
     end
   end
 
+  describe "POST /api/mobile/v1/bills" do
+    it "creates a draft bill for the current user" do
+      post "/api/mobile/v1/bills", params: { bill: { title: "Friday dinner" } }, as: :json
+
+      expect(response).to have_http_status(:created)
+      body = response.parsed_body
+      expect(body["bill"]).to include("title" => "Friday dinner", "status" => "draft")
+      expect(user.bills.find(body["bill"]["id"])).to be_present
+    end
+
+    it "defaults the title when omitted" do
+      post "/api/mobile/v1/bills", as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body["bill"]["title"]).to eq("New bill")
+    end
+  end
+
   describe "GET /api/mobile/v1/bills/:id" do
     it "returns the bill payload" do
       bill = create(:bill, user: user)

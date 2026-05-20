@@ -40,7 +40,7 @@ Rails.application.routes.draw do
     namespace :mobile do
       namespace :v1 do
         get "health", to: "health#show"
-        resources :bills, only: %i[index show] do
+        resources :bills, only: %i[index show create] do
           member do
             get :summary
             post :split_all_equally, to: "bill_assignments#split_all_equally"

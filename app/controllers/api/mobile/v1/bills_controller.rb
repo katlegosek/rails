@@ -9,6 +9,15 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
     render json: { bills: bills.map { |bill| bill_index_payload(bill) } }
   end
 
+  def create
+    bill = current_mobile_user.bills.create!(
+      status: :draft,
+      title: bill_create_title
+    )
+
+    render json: { bill: bill_payload(bill) }, status: :created
+  end
+
   def show
     bill = current_mobile_user.bills
       .includes(
@@ -41,6 +50,10 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   end
 
   private
+
+  def bill_create_title
+    params.dig(:bill, :title).presence || "New bill"
+  end
 
   def bill_show_json(bill)
     {
