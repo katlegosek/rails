@@ -1,0 +1,33 @@
+<div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+  <ul id="user-tabs" data-tabs-toggle="#default-tab-content" role="tablist" data-tabs-active-classes="text-primary border-primary" class="flex flex-wrap -mb-px text-sm font-medium text-center">
+    <% tabs.each do |tab| %>
+      <li role="presentation" class="me-2">
+        <button onclick="updateTab('<%= tab.name %>')" id="<%= tab.name %>-tab" data-tabs-target="#<%= tab.name %>" type="button" role="tab" aria-controls="<%= tab.name %>" aria-selected="<%= tab.active ? 'true' : 'false' %>" class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300">
+          <%= tab.name.titleize %>
+        </button>
+      </li>
+    <% end %>
+  </ul>
+</div>
+
+<div id="default-tab-content">
+  <% tabs.each do |tab| %>
+    <% if tab.active %>
+      <div id="<%= tab.name %>" role="tabpanel" aria-labelledby="<%= tab.name %>-tab" class="hidden rounded-lg">
+        <%= tab.content %>
+      </div>
+    <% else %>
+      <div id="<%= tab.name %>" role="tabpanel" aria-labelledby="<%= tab.name %>-tab" class="hidden rounded-lg">
+        <%= tab.content %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<script>
+  function updateTab(name) {
+    const url = new URL(window.location);
+    url.searchParams.set("tab", name);
+    window.history.pushState({}, "", url);
+  }
+</script>

@@ -1,0 +1,7 @@
+<% if form.present? %>
+  <%= form.label name, (required? ? "#{label_text} *" : label_text), class: style(class: class_names) %>
+<% else %>
+  <%= content_tag(:label, id: name, for: name, class: style(class: class_names)) do %>
+    <%= required? ? "#{label_text} *" : label_text %>
+  <% end %>
+<% end %>

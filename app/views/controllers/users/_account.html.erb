@@ -1,0 +1,8 @@
+<div class="space-y-2">
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "First Name", body: @user.first_name %>
+    <%= component "atoms/wrapper/item", title: "Last Name", body: @user.last_name %>
+    <%= component "atoms/wrapper/item", title: "Email", body: @user.email %>
+    <%= component "atoms/wrapper/item", title: "Unconfirmed Email", body: @user.unconfirmed_email %>
+  <% end %>
+</div>

@@ -1,0 +1,38 @@
+<% if @versions.present? %>
+  <div class="text-sm divide-y divide-gray-200 space-y-2">
+    <% @versions.each do |version| %>
+      <div class="py-2 px-4 border rounded-sm bg-gray-50 dark:bg-gray-800">
+        <div class="grid grid-cols-4">
+          <% version.changeset.each do |set| %>
+            <% set.each do |attribute| %>
+              <% if attribute.is_a?(String) %>
+                <p><%= attribute %></p>
+              <% else %>
+                <p class="space-x-2 col-span-3">
+                  <span><%= attribute[0] %></span>
+                  <span>=></span>
+                  <span><%= attribute[1] %></span>
+                </p>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="text-slate-500 text-xs font-medium">
+          <span class="event mr-1">
+            <%= version.event.humanize %>
+          </span>
+          <span class="mr-1">on</span>
+          <span class="mr-1">
+            <%= version.created_at.strftime("%-d %b %Y %kh%M") %>
+          </span>
+          <% if version.whodunnit.present? %>
+            <span class="mr-1">by</span>
+            <span>
+              <%= User.find(version.whodunnit.to_i).full_name %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

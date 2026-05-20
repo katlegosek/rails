@@ -1,0 +1,9 @@
+<div class="flex items-center justify-center">
+  <%= component "containers/form" do %>
+    <%= form_with(model: notification, id: notification.new_record? ? "new_notification" : dom_id(notification), html: { class: "flex flex-col space-y-4 max-w-sm mx-auto" }) do |form| %>
+      <%= component "molecules/input", form:, name: :message, autofocus: true, required: true %>
+      <%= component "atoms/select", form:, name: :user_ids, options: User.order(:id).map { |user| [user.full_name, user.id] }, html_options: { prompt: "Select users", multiple: true, size: 5, required: true } %>
+      <%= component "atoms/button", title: notification.new_record? ? "Create" : "Update", type: "submit" %>
+    <% end %>
+  <% end %>
+</div>

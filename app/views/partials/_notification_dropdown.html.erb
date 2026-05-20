@@ -1,0 +1,23 @@
+<button data-dropdown-toggle="dropdown-notification" type="button" id="dropdown-notification-button" class="relative inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400">
+  <%= component "molecules/nav_bell", unread_count: current_user.unread_notifications_count %>
+</button>
+<div aria-labelledby="dropdown-notification-button" id="dropdown-notification" class="z-20 hidden w-full max-w-sm bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-800 dark:divide-gray-700">
+  <div class="block px-4 py-2 font-medium text-center text-gray-700 rounded-t-lg bg-gray-50 dark:bg-gray-800 dark:text-white">
+    My Latest Inbox
+  </div>
+  <div id="notification-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+    <% if current_user.unread_notifications_count == 0 %>
+      <p class="text-center p-2">Nothing here...</p>
+    <% else %>
+      <% current_user.unread_notifications.last(10).each do |notification| %>
+        <%= component "molecules/notification_nav_item", notification: %>
+      <% end %>
+    <% end %>
+  </div>
+  <a href="<%= inbox_messages_path %>" class="block py-2 text-sm font-medium text-center text-gray-900 rounded-b-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white">
+    <span class="inline-flex items-center">
+      <%= component "atoms/icons", type: "eye" %>
+      View All
+    </span>
+  </a>
+</div>

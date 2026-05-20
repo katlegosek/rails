@@ -1,0 +1,15 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/page_header", title: "Users" do |comp| %>
+    <%= comp.with_actions do %>
+      <%= component "atoms/button", title: "Turbo Modal", data: { controller: "open-modal", open_modal_id_value: "turbo-modal", action: "click->open-modal#open" } %>
+    <% end %>
+  <% end %>
+  <%= render "filter" %>
+  <div>
+    <%= turbo_frame_tag "users-table" do %>
+      <%= component "molecules/table", collection: @users %>
+    <% end %>
+  </div>
+<% end %>
+<%= turbo_frame_tag :turbo_modal, src: turbo_modal_users_path %>

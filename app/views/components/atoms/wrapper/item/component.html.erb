@@ -1,0 +1,10 @@
+<div class="font-bold uppercase text-xs grid h-full items-center text-slate-500">
+  <p class="dark:text-white">
+    <%= title %>
+  </p>
+</div>
+<div class="grid h-full items-center col-span-3">
+  <p class="<%= style(class: class_names) %>">
+    <%= content || body || "-" %>
+  </p>
+</div>

@@ -1,0 +1,10 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/page_header", title: "My Inbox" %>
+  <%= render "filter" %>
+  <div>
+    <%= turbo_frame_tag "notifications-table" do %>
+      <%= component "molecules/table", collection: @notifications %>
+    <% end %>
+  </div>
+<% end %>

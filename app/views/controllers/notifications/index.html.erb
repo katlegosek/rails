@@ -1,0 +1,14 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/page_header", title: "Notifications" do |component|  %>
+    <%= component.with_actions do %>
+      <%= component "atoms/button", title: "Create", as: :link_to, path: new_notification_path %>
+    <% end %>
+  <% end %>
+  <%= render "filter" %>
+  <div>
+    <%= turbo_frame_tag "users-table" do %>
+      <%= component "molecules/table", collection: @notifications %>
+    <% end %>
+  </div>
+<% end %>

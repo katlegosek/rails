@@ -1,0 +1,37 @@
+<nav aria-label="Table navigation" class="flex items-center flex-column flex-wrap md:flex-row justify-between">
+  <span class="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">
+    Showing
+    <span class="font-semibold text-gray-900 dark:text-white">
+      <%= (resources.current_page * resources.limit_value) - resources.limit_value + 1 %>
+      -
+      <%= resources.last_page? ? resources.total_count : resources.current_page * resources.limit_value %>
+    </span>
+    of
+    <span class="font-semibold text-gray-900 dark:text-white">
+      <%= resources.total_count %>
+    </span>
+  </span>
+  <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+    <%= helpers.component "atoms/pagination/action", resources:, prev: true %>
+    
+    <% if current_page > total_pages - 3 && total_pages > 5 %>
+      <%= helpers.component "atoms/pagination/number", page_number: total_pages - 5 %>
+    <% end %>
+    
+    <% (start_page..end_page).each do |page_number| %>
+      <%= helpers.component "atoms/pagination/number", page_number:, active: page_number == current_page %>
+    <% end %>
+    
+    <% if end_page < total_pages && total_pages > 3 %>
+      <% if current_page === total_pages - 3 || total_pages === 6 %>
+        <%= helpers.component "atoms/pagination/number", page_number: total_pages - 1, more: true %>
+      <% else %>
+        <%= helpers.component "atoms/pagination/number", page_number: '...', more: true %>
+      <% end %>
+      
+      <%= helpers.component "atoms/pagination/number", page_number: total_pages, active: total_pages - 1 == current_page %>
+    <% end %>
+    
+    <%= helpers.component "atoms/pagination/action", resources: %>
+  </ul>
+</nav>

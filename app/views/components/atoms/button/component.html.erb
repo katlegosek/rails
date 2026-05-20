@@ -1,0 +1,23 @@
+<% unless form.present? %>
+  <% if as == :link_to %>
+    <%= link_to path, data:, id:, class: style(variant:, class: class_names) do %>
+      <%= title || content %>
+    <% end %>
+  <% end %>
+
+  <% if as == :button_tag %>
+    <%= button_tag path, data:, id:, disabled: state == :disabled, type:, name:, class: style(variant:, class: class_names) do %>
+      <%= title || content %>
+    <% end %>
+  <% end %>
+
+  <% if as == :button_to %>
+    <%= button_to path, data:, type:, name:, class: style(variant:, class: class_names) do %>
+      <%= title || content %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if form.present? %>
+  <%= form.submit title, data:, class: style(variant:, class: class_names) %>
+<% end %>

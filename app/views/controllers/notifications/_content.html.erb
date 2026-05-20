@@ -1,0 +1,6 @@
+<div class="space-y-2">
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "Message", body: @notification.message %>
+    <%= component "atoms/wrapper/item", title: "Created", body: @notification.created_at %>
+  <% end %>
+</div>

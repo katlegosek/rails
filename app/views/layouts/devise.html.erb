@@ -1,0 +1,12 @@
+<%= content_for :content do %>
+  <main class="grid h-screen w-screen grid-cols-1 lg:grid-cols-2">
+    <div class="bg-primary hidden lg:block"></div>
+    <div class="flex flex-col justify-center items-center">
+      <%= image_tag "logo.png", alt: "My logo", size: '200x75' %>
+      <br>
+      <%= flash_notify %>
+      <%= yield %>
+    </div>
+  </main>
+<% end %>
+<%= render template: "layouts/application" %>

@@ -1,0 +1,9 @@
+<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  <%= component "molecules/table/cell", body: record.id %>
+  <%= component "molecules/table/cell", body: record.message %>
+  <%= component "molecules/table/cell", body: record.created_at.strftime("%F %R") %>
+  <%= component "molecules/table/cell", body: record.read?(current_user) ? "Yes" : "No" %>
+  <%= component "molecules/table/cell" do %>
+    <%= component "atoms/button", title: "View", id: "view-inbox-messages-#{record.id}", as: :link_to, path: inbox_message_path(record.id), variant: :link, data: { turbo: false } %>
+  <% end %>
+</tr>

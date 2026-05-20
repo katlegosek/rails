@@ -1,0 +1,13 @@
+<li>
+  <%= link_to href, class: style do %>
+    <%= helpers.component "atoms/icons", type: icon %>
+    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
+      <%= name %>
+    </span>
+    <% if badge.present? && badge > 0 %>
+      <div id="<%= badge_id %>">
+        <%= helpers.component "atoms/badge", count: badge %>
+      </div>
+    <% end %>
+  <% end %>
+</li>

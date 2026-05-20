@@ -1,0 +1,9 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/page_header", title: "Notification" %>
+  <%= component "atoms/tabs", active_tab: params[:tab] || "content" do |component| %>
+    <%= component.with_tab(name: "content") do %>
+      <%= render "content" %>
+    <% end %>
+  <% end %>
+<% end %>

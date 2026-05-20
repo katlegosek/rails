@@ -1,0 +1,14 @@
+<a href="<%= href %>" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700">
+  <span class="shrink-0">
+    <%= helpers.component "atoms/icons", type: "user-circle" %>
+    <%= helpers.component "atoms/icons", type: icon %>
+  </span>
+  <span class="w-full ps-3 flex flex-col justify-center">
+    <span class="text-gray-500 text-sm mb-1 5 dark:text-gray-400">
+      <%= @message %>
+    </span>
+    <span class="text-xs text-blue-600 dark:text-blue-500">
+      <%= created_at %>
+    </span>
+  </span>
+</a>

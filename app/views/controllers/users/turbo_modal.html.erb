@@ -1,0 +1,9 @@
+<%= turbo_frame_tag :turbo_modal do %>
+  <%= component "molecules/modal", modal_id: "turbo-modal", title: "Turbo Modal", class_name: "max-w-xl" do |component| %>
+    <%= component.with_body do %>
+      <div class="p-2">
+        <p>I was loaded in using turbo</p>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

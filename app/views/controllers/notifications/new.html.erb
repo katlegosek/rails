@@ -1,0 +1,5 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/sub_header", content: "New Notification" %>
+  <%= render "form", notification: @notification %>
+<% end %>

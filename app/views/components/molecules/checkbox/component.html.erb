@@ -1,0 +1,6 @@
+<div class="flex items-center gap-2">
+  <div class="flex items-center h-5">
+    <%= form.check_box name, class: style(class: class_names) %>
+  </div>
+  <%= helpers.component "atoms/label", form:, name:, label_text: %>
+</div>

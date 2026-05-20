@@ -1,0 +1,18 @@
+<%= component "containers/form" do %>
+  <%= component "atoms/sub_header", content: "Change your password" %>
+  <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "flex flex-col space-y-4 max-w-sm mx-auto" }) do |form| %>
+    <%= form.hidden_field :reset_password_token %>
+    <%= component "organisms/password_field", form:, name: :password, label_text: "New password" do |component| %>
+      <%= component.with_helper_text do %>
+        <% if @minimum_password_length %>
+          <em>
+            <%= @minimum_password_length %> characters minimum
+          </em>
+        <% end %>
+      <% end %>
+    <% end %>
+    <%= component "organisms/password_field", form:, name: :password_confirmation, label_text: "Confirm new password", autocomplete: "new-password" %>
+    <%= component "atoms/button", title: "Change my password", type: "submit" %>
+  <% end %>
+  <%= render "devise/shared/links" %>
+<% end %>

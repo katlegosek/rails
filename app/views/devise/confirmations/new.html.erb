@@ -1,0 +1,8 @@
+<%= component "containers/form" do %>
+  <%= component "atoms/sub_header", content: "Resend confirmation instructions" %>
+  <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { class: "flex flex-col space-y-4 max-w-sm mx-auto" }) do |form| %>
+    <%= component "organisms/email_field", form:, name: :email, autofocus: true, required: true, value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email) %>
+    <%= component "atoms/button", title: "Resend confirmation instructions", type: "submit" %>
+  <% end %>
+  <%= render "devise/shared/links" %>
+<% end %>

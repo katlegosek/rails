@@ -1,0 +1,12 @@
+<%= component "atoms/card" do %>
+  <%= form_with(url: inbox_messages_path, method: :get, local: true, data: { controller: "form", turbo_frame: "notifications-table", turbo_action: "advance" }) do |form| %>
+    <%= component "containers/filter_spacing" do %>
+      <%= component "molecules/input", form:, name: :search, value: params[:search], autofocus: true, data: { action: "keyup->form#submit" } do |component| %>
+        <%= component.with_left_icon do %>
+          <%= component "atoms/icons", type: "search" %>
+        <% end %>
+      <% end %>
+      <%= component "molecules/reset_button" %>
+    <% end %>
+  <% end %>
+<% end %>

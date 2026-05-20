@@ -1,0 +1,11 @@
+<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b  border-gray-200 dark:border-gray-700">
+  <%= component "molecules/table/cell", body: record.id %>
+  <%= component "molecules/table/cell", body: record.first_name %>
+  <%= component "molecules/table/cell", body: record.last_name %>
+  <%= component "molecules/table/cell", body: record.email %>
+  <%= component "molecules/table/cell", body: record.created_at.strftime("%F %R") %>
+  <%= component "molecules/table/cell" do %>
+    <%= component "atoms/button", title: "View", id: "view-user-#{record.id}", as: :link_to, path: user_path(record.id), variant: :link, data: { turbo: false } %>
+    <%= component "atoms/button", title: "Edit", id: "edit-user-#{record.id}", as: :link_to, path: edit_user_path(record.id), variant: :link, data: { turbo: false } %>
+  <% end %>
+</tr>

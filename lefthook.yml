@@ -1,0 +1,11 @@
+pre-commit:
+  commands:
+    server-lint:
+      root: "server/"
+      glob: "*.rb"
+      run: bundle exec rubocop -A --force-exclusion {staged_files}
+      stage_fixed: true
+    client-lint:
+      glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: npx @biomejs/biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true

@@ -1,0 +1,17 @@
+<div>
+  <%= helpers.component "atoms/label", form:, name:, label_text:, class_names: "mb-2" %>
+  <div class="relative">
+    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+      <%= left_icon %>
+    </div>
+    <% options = { autofocus:, placeholder:, required:, autocomplete:, data:, class: style(icon: left_icon?, class: class_names) } %>
+    <% options[:value] = value if value.present? %>
+    <%= form.send(field_type, name, **options) %>
+  </div>
+  <% if errors? %>
+    <p class="text-sm text-red-500"><%= errors %></p>
+  <% end %>
+  <%= helpers.component "atoms/helper_text", form:, name: do %>
+    <%= helper_text %>
+  <% end %>
+</div>

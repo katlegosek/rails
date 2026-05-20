@@ -1,0 +1,60 @@
+image: ruby:3.4.2
+
+cache:
+  paths:
+    - vendor
+    - node_modules
+
+services:
+  - postgres:latest
+
+variables:
+  RAILS_ENV: test
+  DATABASE_HOST: postgres
+  DATABASE_NAME: template
+  DATABASE_ADAPTER: postgresql
+  DATABASE_USERNAME: postgres
+  DATABASE_PASSWORD: password
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DISPLAY: ":99"
+
+before_script:
+  - apt-get update -qq && apt-get install -y curl gnupg build-essential libpq-dev -y libvips libvips-dev
+  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+  - curl -sL https://deb.nodesource.com/setup_20.x | bash -
+  - apt-get update -qq && apt-get install -y yarn nodejs
+  # Install Chrome dependencies
+  - apt-get install -y wget unzip xvfb libxi6 libgconf-2-4 libnss3 libatk-bridge2.0-0 libgtk-3.0 libxss1 libappindicator1 libasound2 libgbm-dev libxshmfence-dev
+  # Install Google Chrome
+  - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+  - echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
+  - apt-get update -qq && apt-get install -y google-chrome-stable
+  # Install Chrome driver
+  - apt-get install -yqq unzip
+  - wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+  - unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+  - Xvfb :99 -ac -screen 0 1280x1024x16 &
+  - google-chrome --version
+  - yarn install --network-timeout 10000
+  - bundle install
+  - echo "${RAILS_TEST_KEY}" > config/credentials/test.key
+  - bundle exec rails db:create --quiet
+  - bundle exec rails db:migrate --quiet
+  - bundle exec rake assets:precompile
+
+rspec:
+  services:
+    - postgres:latest
+  script:
+    - bundle exec rspec
+
+lint:
+  script:
+    - bundle exec rubocop
+
+brakeman:
+  script:
+    - bundle exec brakeman -z -q --except CheckRender

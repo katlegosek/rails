@@ -1,0 +1,13 @@
+<%= component "atoms/card" do %>
+  <%= form_with(url: users_path, method: :get, local: true, data: { controller: "form", turbo_frame: "users-table", turbo_action: "advance" }) do |form| %>
+    <%= component "containers/filter_spacing" do %>
+      <%= component "molecules/input", form:, name: :search, value: params[:search], autofocus: true, data: { action: "keyup->form#submit" } do |component| %>
+        <%= component.with_left_icon do %>
+          <%= component "atoms/icons", type: "search" %>
+        <% end %>
+      <% end %>
+      <%= component "atoms/select", form:, name: :status, options: %w[active inactive], value: params[:used], data: { action: "change->form#submit" } %>
+      <%= component "molecules/reset_button" %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,5 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs" %>
+  <%= component "atoms/sub_header", title: "Edit User" %>
+  <%= render "form", user: @user %>
+<% end %>

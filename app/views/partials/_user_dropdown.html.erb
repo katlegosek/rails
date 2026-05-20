@@ -1,0 +1,25 @@
+<button type="button" data-dropdown-toggle="dropdown-name" id="dropdown-name-button" class="flex items-center text-sm pe-1 font-medium text-gray-900 rounded-full hover:text-primary dark:hover:text-primary/90 md:me-0 dark:text-white">
+  <span class="sr-only">Open user menu</span>
+  <%= current_user.full_name %>
+  <%= component "atoms/icons", type: "chevron-down", class_names: "w-2.5 h-2.5 ms-3" %>
+</button>
+<div id="dropdown-name" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600">
+  <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+    <div class="font-medium">
+      <%= current_user.full_name %>
+    </div>
+    <div class="truncate">
+      <%= current_user.email %>
+    </div>
+  </div>
+  <ul aria-labelledby="dropdown-inform-dropdown-name-buttonation-button" class="py-2 text-sm text-gray-700 dark:text-gray-200">
+    <li>
+      <a href="<%= edit_user_path(current_user) %>" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+        Settings
+      </a>
+    </li>
+  </ul>
+  <div class="py-2">
+    <%= component "atoms/button", title: "Sign Out", as: :link_to, path: destroy_user_session_url, variant: :text, data: { turbo_method: :delete }, class_names: "text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white w-full" %>
+  </div>
+</div>

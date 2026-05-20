@@ -1,0 +1,12 @@
+<% if @notification.notifications_users.any? %>
+  <div class="divide-y divide-gray-200 space-y-2">
+    <% @notification.notifications_users.each do |notifications_user| %>
+      <div class="space-y-2">
+        <%= component "atoms/wrapper" do %>
+          <%= component "atoms/wrapper/item", title: "User", body: notifications_user.user.full_name %>
+          <%= component "atoms/wrapper/item", title: "Read at", body: notifications_user.read_at %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

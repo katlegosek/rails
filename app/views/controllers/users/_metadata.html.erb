@@ -1,0 +1,23 @@
+<div class="space-y-2">
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "Created", body: @user.created_at %>
+    <%= component "atoms/wrapper/item", title: "Updated", body: @user.updated_at %>
+  <% end %>
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "Sign in count", body: @user.sign_in_count %>
+    <%= component "atoms/wrapper/item", title: "Current sign in IP", body: @user.current_sign_in_ip %>
+    <%= component "atoms/wrapper/item", title: "Current sign at", body: @user.current_sign_in_at %>
+    <%= component "atoms/wrapper/item", title: "Last sign in IP", body: @user.last_sign_in_ip %>
+    <%= component "atoms/wrapper/item", title: "Last sign in at", body: @user.last_sign_in_at %>
+  <% end %>
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "Confirmed at", body: @user.confirmed_at %>
+    <%= component "atoms/wrapper/item", title: "Confirmation sent at", body: @user.confirmation_sent_at %>
+  <% end %>
+  <%= component "atoms/wrapper" do %>
+    <%= component "atoms/wrapper/item", title: "Remeber cretaed at", body: @user.remember_created_at %>
+    <%= component "atoms/wrapper/item", title: "Reset password sent at", body: @user.reset_password_sent_at %>
+    <%= component "atoms/wrapper/item", title: "Failed attempts", body: @user.failed_attempts %>
+    <%= component "atoms/wrapper/item", title: "Locked at", body: @user.locked_at %>
+  <% end %>
+</div>

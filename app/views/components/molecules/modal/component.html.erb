@@ -1,0 +1,24 @@
+<dialog <%= auto_open ? "data-controller=auto-open-modal" : "" %> id="<%= modal_id %>" class="mt-2 lg:mt-10 overflow-visible backdrop:bg-black/50 m-auto bg-transparent w-full open:flex items-center justify-center">
+  <div class="<%= style(class: class_name) %>">
+    <div class="relative rounded-lg shadow dark:bg-gray-700 bg-white">
+      <div class="flex justify-between items-start p-2 lg:p-4 rounded-t border-b border-gray-200 dark:border-gray-600">
+        <% if header.present? %>
+          <%= header %>
+        <% else %>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <%= title %>
+          </h3>
+        <% end %>
+        <form method="dialog">
+          <button type="submit" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <%= helpers.component "atoms/icons", type: "close" %>
+            <span class="sr-only">Close Modal</span>
+          </button>
+        </form>
+      </div>
+      <div class="<%= scroll ? "max-h-[625px] overflow-y-scroll" : nil %>">
+        <%= body %>
+      </div>
+    </div>
+  </div>
+</dialog>

@@ -1,0 +1,5 @@
+<li>
+  <%= content_tag(tag, name, class: style(active: active ? :active : :inactive), href:, data: { turbo_action: "advance" }) do %>
+    <%= page_number %>
+  <% end %>
+</li>

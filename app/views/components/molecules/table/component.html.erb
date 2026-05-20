@@ -1,0 +1,15 @@
+<div class="relative overflow-x-auto space-y-4">
+  <%= helpers.component "atoms/pagination", resources: collection %>
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg min-h-48">
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 shadow-md">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <%= render partial: "table_header" %>
+      </thead>
+      <tbody>
+      <% collection.each_with_index do |record, index| %>
+        <%= render partial: "table_row", locals: { record:, index: } %>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

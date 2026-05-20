@@ -1,0 +1,22 @@
+<div class="flex flex-col gap-2 items-center justify-center pt-2 text-center">
+  <% if controller_name == 'registrations' && action_name != 'new' %>
+    <%= component "atoms/button", title: "Back", as: :link_to, path: root_path, variant: :link %>
+  <% end %>
+  <% if controller_name != 'sessions' && (controller_name != 'registrations' || action_name == 'new') %>
+    <%= component "atoms/button", title: "Log in", as: :link_to, path: new_session_path(resource_name), variant: :link %>
+  <% end %>
+  <% if devise_mapping.registerable? && controller_name == 'sessions' %>
+    <%= component "atoms/button", title: "Sign up", as: :link_to, path: new_registration_path(resource_name), variant: :link %>
+  <% end %>
+  <% if controller_name == 'sessions' %>
+    <%= component "atoms/button", title: "Didn't receive confirmation instructions?", as: :link_to, path: new_confirmation_path(resource_name), variant: :link %>
+  <% end %>
+  <% if resource_class.unlock_strategy_enabled?(:email) && controller_name == 'sessions' %>
+    <%= component "atoms/button", title: "Didn't receive unlock instructions?", as: :link_to, path: new_unlock_path(resource_name), variant: :link %>
+  <% end %>
+  <% if devise_mapping.omniauthable? %>
+    <% resource_class.omniauth_providers.each do |provider| %>
+      <%= component "atoms/button", title: "Sign in with #{OmniAuth::Utils.camelize(provider)}", as: :link_to, path: omniauth_authorize_path(resource_name, provider), data: { turbo: false }, variant: :link %>
+    <% end %>
+  <% end %>
+</div>

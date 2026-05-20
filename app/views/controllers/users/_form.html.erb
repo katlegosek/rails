@@ -1,0 +1,10 @@
+<div class="flex items-center justify-center">
+  <%= component "containers/form" do %>
+    <%= form_with(model: user, id: dom_id(user), html: { class: "flex flex-col space-y-4 max-w-sm mx-auto" }) do |form| %>
+      <%= component "organisms/email_field", form:, name: :email, autofocus: true, required: true %>
+      <%= component "molecules/input", form:, name: :first_name, autocomplete: "given-name", required: true %>
+      <%= component "molecules/input", form:, name: :last_name, autocomplete: "family-name", required: true %>
+      <%= component "atoms/button", title: "Update", type: "submit" %>
+    <% end %>
+  <% end %>
+</div>

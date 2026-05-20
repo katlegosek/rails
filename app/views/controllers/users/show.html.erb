@@ -1,0 +1,26 @@
+<%= component "containers/page" do %>
+  <%= component "atoms/breadcrumbs", additional: [@user.full_name] %>
+  <%= component "atoms/page_header", title: @user.full_name do |component| %>
+    <%= component.with_actions do %>
+      <div class="flex items-center gap-2">
+        <%= component "atoms/button", title: "Edit", as: :link_to, path: edit_user_path(@user) %>
+        <% if @user.locked_at.present? %>
+          <%= component "atoms/button", title: "Unlock", as: :link_to, path: unlock_user_path(@user), variant: :outline, data: { turbo_method: :patch } %>
+        <% else %>
+          <%= component "atoms/button", title: "Lock", as: :link_to, path: lock_user_path(@user, params.permit(:tab, :id)), variant: :outline, data: { turbo_method: :patch } %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+  <%= component "atoms/tabs", active_tab: params[:tab] || "account" do |component| %>
+    <%= component.with_tab(name: "account") do %>
+      <%= render "account" %>
+    <% end %>
+    <%= component.with_tab(name: "metadata") do %>
+      <%= render "metadata" %>
+    <% end %>
+    <%= component.with_tab(name: "papertrail") do %>
+      <%= render "papertrail" %>
+    <% end %>
+  <% end %>
+<% end %>
