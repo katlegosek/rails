@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
 ruby "3.4.9"
 
@@ -36,6 +36,7 @@ gem "doorkeeper", "~> 5.8"
 gem "doorkeeper-jwt", "~> 0.4"
 gem "rack-cors", "~> 2.0"
 
+# TODO: Revisit active_model_serializers before building API serializers.
 gem "active_model_serializers", "~> 0.10"
 gem "kaminari", "~> 1.2"
 gem "paper_trail", "~> 17.0"
@@ -59,6 +60,7 @@ group :development, :test do
   gem "shoulda-context", "~> 3.0.0.rc1"
   gem "shoulda-matchers"
   gem "simplecov", "~> 0.22.0", require: false
+  gem "rubocop-rails", require: false
   gem "webmock"
   gem "webdrivers"
   gem "faker"
