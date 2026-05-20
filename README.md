@@ -13,18 +13,24 @@ Rails backend skeleton for the bill-splitting app (Fetza), based on the Codehesi
 
 ## Requirements
 
-- Ruby 3.4.9 (latest Ruby 3 — see `.ruby-version`)
+- [asdf](https://asdf-vm.com/) with the Ruby plugin
+- Ruby 3.4.9 (see `.ruby-version` / `.tool-versions`)
 - PostgreSQL 16+
-- libpq (`brew install libpq` and add to PATH)
+- libpq (`brew install libpq postgresql@16`)
 
 ## Setup
 
 ```bash
+# One-time: asdf + Ruby (if not already installed)
+asdf plugin add ruby https://github.com/asdf-community/asdf-ruby.git
+asdf install ruby 3.4.9   # reads .ruby-version / .tool-versions
+
 cd rails
 cp .env.example .env
 # Edit .env if your Postgres user/password differ from local defaults
 
-export PATH="/opt/homebrew/opt/ruby@3.4/bin:/opt/homebrew/opt/libpq/bin:/opt/homebrew/opt/postgresql@16/bin:$PATH"
+# Postgres tools on PATH (Ruby comes from asdf shims)
+export PATH="/opt/homebrew/opt/libpq/bin:/opt/homebrew/opt/postgresql@16/bin:$PATH"
 
 bundle install
 bundle exec rails db:create db:migrate
