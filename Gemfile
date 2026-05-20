@@ -1,53 +1,55 @@
 source "https://rubygems.org"
 
-gem "rails", "~> 8.1"
+ruby "3.4.9"
 
-gem "puma", "~> 6.6.0"
-gem "bootsnap", require: false
+gem "rails", "~> 8.1.0"
+gem "puma", "~> 6.6"
+gem "bootsnap", "~> 1.18", require: false
 gem "thruster", require: false
 
 gem "tzinfo-data", platforms: %i[mswin mswin64 mingw x64_mingw jruby]
 
 gem "propshaft"
 gem "image_processing"
-gem "importmap-rails"
-gem "turbo-rails"
-gem "stimulus-rails"
+gem "importmap-rails", "~> 2.0"
+gem "turbo-rails", "~> 2.0"
+gem "stimulus-rails", "~> 1.3"
 gem "hotwire-spark"
-gem "tailwindcss-rails"
-gem "tailwindcss-ruby"
+gem "tailwindcss-rails", "~> 4.0"
+gem "rubyzip", "~> 2.3"
+gem "tailwindcss-ruby", "~> 4.1"
 gem "tailwind_merge"
-gem "view_component"
+gem "view_component", "~> 4.11"
 gem "view_component-contrib"
 gem "dry-initializer"
 gem "dry-effects"
 
-gem "pg", "~> 1.1"
-gem "solid_cache"
-gem "solid_cable"
-gem "solid_queue"
-gem "mission_control-jobs"
+gem "pg", "~> 1.5"
+gem "solid_cache", "~> 1.0"
+gem "solid_cable", "~> 3.0"
+gem "solid_queue", "~> 1.0"
+gem "mission_control-jobs", "~> 1.1"
 
-gem "active_model_otp"
-gem "devise"
-gem "doorkeeper"
-gem "doorkeeper-jwt"
-gem "rack-cors"
+gem "active_model_otp", "~> 2.3"
+gem "devise", "~> 5.0"
+gem "doorkeeper", "~> 5.8"
+gem "doorkeeper-jwt", "~> 0.4"
+gem "rack-cors", "~> 2.0"
 
-gem "active_model_serializers"
-gem "kaminari"
-gem "paper_trail"
+gem "active_model_serializers", "~> 0.10"
+gem "kaminari", "~> 1.2"
+gem "paper_trail", "~> 17.0"
 
 gem "faraday"
 
-gem "rack-attack"
+gem "rack-attack", "~> 6.7"
 gem "lograge"
 
 group :development, :test do
   gem "brakeman"
   gem "byebug"
   gem "debug", platforms: %i[mri mswin mswin64 mingw x64_mingw]
-  gem "dotenv-rails"
+  gem "dotenv-rails", "~> 3.1"
 
   gem "capybara"
   gem "database_cleaner-active_record"
@@ -83,6 +85,3 @@ group :development do
 
   gem "rubocop-rails-omakase", require: false
 end
-
-# CHECKOUT THESE
-# https://www.stimulus-components.com/docs/stimulus-auto-submit
