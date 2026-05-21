@@ -5,6 +5,7 @@ class CreatePhaseOneBillSplittingTables < ActiveRecord::Migration[8.1]
     create_table :bills do |t|
       t.references :user, null: false, foreign_key: true
       t.string :status, null: false, default: "draft"
+      t.string :title
 
       t.timestamps
     end
@@ -13,6 +14,15 @@ class CreatePhaseOneBillSplittingTables < ActiveRecord::Migration[8.1]
     create_table :receipts do |t|
       t.references :bill, null: false, foreign_key: true, index: { unique: true }
       t.string :status, null: false, default: "draft"
+      t.string :merchant_name
+      t.date :receipt_date
+      t.integer :subtotal_cents, null: false, default: 0
+      t.integer :total_cents, null: false, default: 0
+      t.string :currency, null: false, default: "ZAR"
+      t.integer :tax_cents, null: false, default: 0
+      t.integer :service_fee_cents, null: false, default: 0
+      t.integer :tip_cents, null: false, default: 0
+      t.integer :discount_cents, null: false, default: 0
 
       t.timestamps
     end
@@ -48,7 +58,7 @@ class CreatePhaseOneBillSplittingTables < ActiveRecord::Migration[8.1]
       t.string :label, null: false
       t.string :kind, null: false
       t.integer :amount_cents, null: false
-      t.boolean :included_in_total, null: false, default: true
+      t.boolean :affects_total, null: false, default: false
       t.integer :position, null: false, default: 0
 
       t.timestamps

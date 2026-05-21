@@ -4,6 +4,7 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
+# TODO(production): Restrict CORS origins in production (not Expo dev URLs). See docs/DEV_ONLY_TODOS.md
 expo_dev_origins = [
   %r{\Ahttp://localhost(:\d+)?\z},
   %r{\Ahttp://127\.0\.0\.1(:\d+)?\z},

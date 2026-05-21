@@ -22,7 +22,7 @@ else
     role: "admin",
     otp_secret_key: User.otp_random_secret,
     confirmed_at: Time.zone.now
-  ).find_or_create_by!(email: "user@codehesion.co.za")
+  ).find_or_create_by!(email: "user@fetza.test")
 
   users = []
   99.times do
@@ -51,7 +51,7 @@ else
 
   BILL_SEED_MODELS.each(&:delete_all)
 
-  seed_user = User.create_with(
+  User.create_with(
     first_name: "Katlego",
     last_name: "Mokoena",
     password: "Password1!",
@@ -59,6 +59,9 @@ else
     otp_secret_key: User.otp_random_secret,
     confirmed_at: Time.zone.now
   ).find_or_create_by!(email: "katlego@fetza.test")
+
+  # Mobile API uses User.first until auth exists; demo bills must belong to that user.
+  bill_owner = User.order(:id).first
 
   def assign_equal_split(receipt_item, participants)
     count = participants.size
@@ -91,6 +94,15 @@ else
     )
   end
 
+  def adjustment_affects_total?(kind)
+    case kind.to_sym
+    when :subtotal, :tax
+      false
+    else
+      true
+    end
+  end
+
   def create_adjustments(receipt, rows)
     rows.each_with_index do |row, index|
       ReceiptAdjustment.create!(
@@ -98,14 +110,56 @@ else
         label: row[:label],
         kind: row[:kind],
         amount_cents: row[:amount_cents],
-        included_in_total: row.fetch(:included_in_total, true),
+        affects_total: row.fetch(:affects_total, adjustment_affects_total?(row[:kind])),
         position: index
       )
     end
   end
 
+  RECEIPT_IMAGE_SEED_PATH = Rails.root.join("spec/fixtures/files/receipt.jpg").freeze
+
+  def create_receipt_image!(receipt:, position:, capture_type:)
+    receipt_image = ReceiptImage.new(
+      receipt: receipt,
+      position: position,
+      capture_type: capture_type
+    )
+
+    receipt_image.image.attach(
+      io: StringIO.new(File.binread(RECEIPT_IMAGE_SEED_PATH)),
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+
+    receipt_image.save!
+    receipt_image
+  end
+
+  def update_receipt_totals!(receipt, merchant_name:, items:)
+    adjustments = receipt.receipt_adjustments.reload
+    subtotal_cents = items.sum(&:total_cents)
+    service_fee_cents = adjustments.select { |a| a.kind == "service_fee" }.sum(&:amount_cents)
+    tax_cents = adjustments.select { |a| a.kind == "tax" }.sum(&:amount_cents)
+    tip_cents = adjustments.select { |a| a.kind == "tip" }.sum(&:amount_cents)
+    discount_cents = adjustments.select { |a| a.kind == "discount" }.sum(&:amount_cents)
+    affecting_total = adjustments.select(&:affects_total).sum(&:amount_cents)
+    total_cents = subtotal_cents + affecting_total
+
+    receipt.update!(
+      merchant_name: merchant_name,
+      receipt_date: Date.current,
+      subtotal_cents: subtotal_cents,
+      service_fee_cents: service_fee_cents,
+      tax_cents: tax_cents,
+      tip_cents: tip_cents,
+      discount_cents: discount_cents,
+      total_cents: total_cents,
+      currency: "ZAR"
+    )
+  end
+
   # Bill 1: Observatory Small Plates (partially assigned)
-  observatory_bill = Bill.create!(user: seed_user, status: :active)
+  observatory_bill = Bill.create!(user: bill_owner, status: :active, title: "Observatory Small Plates")
   observatory_receipt = Receipt.create!(bill: observatory_bill, status: :confirmed)
 
   observatory_participants = [
@@ -156,8 +210,9 @@ else
     { label: "Service charge (10%)", kind: :service_fee, amount_cents: (observatory_subtotal * 0.10).round },
     { label: "Tip", kind: :tip, amount_cents: 5_000 }
   ])
+  update_receipt_totals!(observatory_receipt, merchant_name: "Observatory Restaurant", items: observatory_items)
 
-  ReceiptImage.create!(receipt: observatory_receipt, position: 0, capture_type: "camera")
+  create_receipt_image!(receipt: observatory_receipt, position: 0, capture_type: "camera")
 
   ReceiptProcessingRun.create!(
     receipt: observatory_receipt,
@@ -179,7 +234,7 @@ else
   )
 
   # Bill 2: Friday Night Out (fully assigned)
-  friday_bill = Bill.create!(user: seed_user, status: :active)
+  friday_bill = Bill.create!(user: bill_owner, status: :active, title: "Friday Night Out")
   friday_receipt = Receipt.create!(bill: friday_bill, status: :confirmed)
 
   friday_participants = [
@@ -238,11 +293,12 @@ else
     { label: "Subtotal", kind: :subtotal, amount_cents: friday_subtotal },
     { label: "VAT (15%)", kind: :tax, amount_cents: (friday_subtotal * 0.15).round },
     { label: "Tip", kind: :tip, amount_cents: 8_000 },
-    { label: "Rounding", kind: :rounding, amount_cents: -50, included_in_total: true }
+    { label: "Rounding", kind: :rounding, amount_cents: -50, affects_total: true }
   ])
+  update_receipt_totals!(friday_receipt, merchant_name: "The Local Grill", items: friday_items)
 
-  ReceiptImage.create!(receipt: friday_receipt, position: 0, capture_type: "camera")
-  ReceiptImage.create!(receipt: friday_receipt, position: 1, capture_type: "gallery")
+  create_receipt_image!(receipt: friday_receipt, position: 0, capture_type: "camera")
+  create_receipt_image!(receipt: friday_receipt, position: 1, capture_type: "gallery")
 
   ReceiptProcessingRun.create!(
     receipt: friday_receipt,
@@ -263,6 +319,6 @@ else
   puts "Assignments:        #{ItemAssignment.count}"
   puts "  Observatory (#{observatory_bill.id}): #{observatory_items.count} items, #{ItemAssignment.where(receipt_item_id: observatory_items.map(&:id)).count} assignments (partial)"
   puts "  Friday Night Out (#{friday_bill.id}): #{friday_items.count} items, #{ItemAssignment.where(receipt_item_id: friday_items.map(&:id)).count} assignments (full)"
-  puts "Seed user:          #{seed_user.email}"
+  puts "Bill owner (User.first): #{bill_owner.email}"
   puts "-----------------------------------\n"
 end

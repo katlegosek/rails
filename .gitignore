@@ -44,6 +44,7 @@ coverage/
 # IDE Ignores
 .idea
 *.DS_Store
+__MACOSX/
 .generators
 .rakeTasks
 
@@ -54,3 +55,6 @@ pnpm-debug.log*
 /config/credentials/development.key
 
 /config/credentials/test.key
+
+# Local API client collections and environments (Postman, Bruno, etc.)
+/api-client/

@@ -5,7 +5,7 @@ module ModelMacros
     @application = FactoryBot.create(:doorkeeper_application)
   end
 
-  def valid_user_attributes(email = 'user@codehesion.co.za')
+  def valid_user_attributes(email = "user@fetza.test")
     {
       email:,
       password: 'Password1!',

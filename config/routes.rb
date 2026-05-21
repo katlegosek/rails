@@ -40,6 +40,25 @@ Rails.application.routes.draw do
     namespace :mobile do
       namespace :v1 do
         get "health", to: "health#show"
+        resources :bills, only: %i[index show create] do
+          member do
+            get :summary
+            post :split_all_equally, to: "bill_assignments#split_all_equally"
+            post :split_unassigned_equally, to: "bill_assignments#split_unassigned_equally"
+            delete :assignments, to: "bill_assignments#clear"
+          end
+          resources :participants, only: %i[create], controller: "bill_participants"
+          resources :receipt_items, only: %i[create], controller: "receipt_items"
+          resources :receipt_images, only: %i[create], controller: "receipt_images"
+        end
+        resources :bill_participants, only: %i[update destroy], controller: "bill_participants"
+        resources :receipt_items, only: %i[update destroy], controller: "receipt_items" do
+          resource :assignments, only: %i[update destroy], controller: "item_assignments"
+        end
+        resources :receipts, only: %i[show] do
+          resources :adjustments, only: %i[create], controller: "receipt_adjustments"
+        end
+        resources :receipt_adjustments, only: %i[update destroy], controller: "receipt_adjustments"
       end
     end
   end

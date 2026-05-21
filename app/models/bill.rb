@@ -17,4 +17,41 @@ class Bill < ApplicationRecord
   }, default: :draft
 
   validates :status, presence: true
+
+  def display_title
+    title.presence ||
+      receipt&.merchant_name.presence ||
+      ocr_title_fallback.presence ||
+      "Untitled bill"
+  end
+
+  def receipt_name
+    receipt&.merchant_name.presence || ocr_merchant_fallback || display_title
+  end
+
+  def receipt_date
+    receipt&.receipt_date || receipt&.created_at&.to_date
+  end
+  def latest_receipt_processing_run
+    return unless receipt
+
+    receipt.receipt_processing_runs.order(Arel.sql("completed_at DESC NULLS LAST"), created_at: :desc).first
+  end
+
+  private
+
+  def ocr_title_fallback
+    ocr_response[:title].presence || ocr_response[:merchant].presence
+  end
+
+  def ocr_merchant_fallback
+    ocr_response[:merchant].presence
+  end
+
+  def ocr_response
+    ai_response = latest_receipt_processing_run&.raw_ai_response
+    return {} if ai_response.blank?
+
+    ai_response.respond_to?(:with_indifferent_access) ? ai_response.with_indifferent_access : ai_response
+  end
 end
