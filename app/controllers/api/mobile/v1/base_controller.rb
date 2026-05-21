@@ -22,21 +22,24 @@ class Api::Mobile::V1::BaseController < ApplicationController
     @current_mobile_user
   end
 
-  def current_mobile_session
-    @current_mobile_session
+  def current_doorkeeper_token
+    @current_doorkeeper_token
   end
 
   def authenticate_mobile_user!
-    raw_access_token = bearer_access_token
-    session = MobileSessions::TokenIssuer.find_active_by_access_token(raw_access_token)
+    @current_doorkeeper_token = MobileAuth::TokenIssuer.find_accessible_access_token(
+      bearer_access_token
+    )
 
-    unless session
-      return render_unauthorized
+    unless @current_doorkeeper_token
+      return render_unauthorized("You need to sign in to continue.")
     end
 
-    session.touch_last_used!
-    @current_mobile_session = session
-    @current_mobile_user = session.user
+    @current_mobile_user = User.find_by(id: @current_doorkeeper_token.resource_owner_id)
+
+    unless @current_mobile_user
+      return render_unauthorized("You need to sign in to continue.")
+    end
   end
 
   def bearer_access_token
@@ -49,7 +52,12 @@ class Api::Mobile::V1::BaseController < ApplicationController
     token.presence
   end
 
-  def render_unauthorized(message = "Unauthorized")
+  def revoke_bearer_access_token_if_present
+    token = MobileAuth::TokenIssuer.find_accessible_access_token(bearer_access_token)
+    token&.revoke
+  end
+
+  def render_unauthorized(message = "You need to sign in to continue.")
     render_api_error(code: :unauthorized, message: message, status: :unauthorized)
   end
 

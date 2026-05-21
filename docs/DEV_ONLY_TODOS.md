@@ -8,7 +8,7 @@ Search this repo: `rg 'TODO(production)'`
 
 | Item | Location |
 |------|----------|
-| **Mobile auth** — `MobileSession` bearer tokens; enable `EXPO_PUBLIC_AUTH_ENABLED=true` in the app | `app/controllers/api/mobile/v1/auth_controller.rb` |
+| **Mobile auth** — Doorkeeper JWT bearer tokens (`Fetza Mobile` app); enable `EXPO_PUBLIC_AUTH_ENABLED=true` in Expo | `app/controllers/api/mobile/v1/auth_controller.rb`, `config/initializers/doorkeeper.rb` |
 | **Fake OCR** | `app/jobs/process_receipt_job.rb` → `Receipts::FakeOcrProcessor` |
 | **ngrok hosts** | `config/environments/development.rb` (dev env only — do not duplicate in production.rb) |
 

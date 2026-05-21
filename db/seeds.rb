@@ -15,6 +15,18 @@ else
     secret: "jmNJE31IYCEKLt5621YMw6LOCGkwbzaNL4U1SU-G__Y"
   ).find_or_create_by!(name: "RailsViewTemplate")
 
+  # Public mobile client (password grant via custom /api/mobile/v1/auth/login — no client secret in the app).
+  # TODO(production): set FETZA_MOBILE_OAUTH_UID / FETZA_MOBILE_OAUTH_SECRET via env for each environment.
+  Doorkeeper::Application.create_with(
+    confidential: false,
+    redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
+    scopes: "",
+    secret: ENV.fetch("FETZA_MOBILE_OAUTH_SECRET", Doorkeeper::OAuth::Helpers::UniqueToken.generate)
+  ).find_or_create_by!(
+    name: "Fetza Mobile",
+    uid: ENV.fetch("FETZA_MOBILE_OAUTH_UID", "fetza-mobile-dev")
+  )
+
   User.create_with(
     first_name: "Default",
     last_name: "User",

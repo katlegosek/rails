@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
-  skip_before_action :authenticate_mobile_user!, only: %i[login refresh]
+  skip_before_action :authenticate_mobile_user!, only: %i[login refresh logout]
 
   def login
     email = params.require(:email).to_s.strip.downcase
@@ -10,20 +10,16 @@ class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
     user = User.find_by("LOWER(email) = ?", email)
 
     unless user&.valid_password?(password)
-      return render_unauthorized("Invalid email or password")
+      return render_unauthorized("Invalid email or password.")
     end
 
-    _session, raw_access_token, raw_refresh_token = MobileSessions::TokenIssuer.issue_for(user)
+    access_token = MobileAuth::TokenIssuer.issue_for(user)
 
-    render json: auth_session_payload(
-      raw_access_token: raw_access_token,
-      raw_refresh_token: raw_refresh_token,
-      user: user
-    ), status: :ok
+    render json: auth_session_payload(access_token: access_token, user: user), status: :ok
   end
 
   def logout
-    current_mobile_session&.revoke!
+    revoke_bearer_access_token_if_present
 
     render json: { success: true }, status: :ok
   end
@@ -34,21 +30,18 @@ class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
 
   def refresh
     raw_refresh_token = params.require(:refresh_token).to_s
-    session = MobileSessions::TokenIssuer.find_active_by_refresh_token(raw_refresh_token)
+    access_token = MobileAuth::TokenIssuer.refresh(raw_refresh_token)
 
-    unless session
+    unless access_token
       return render_unauthorized("Invalid or expired refresh token")
     end
 
-    user = session.user
-    session.revoke!
+    user = User.find_by(id: access_token.resource_owner_id)
 
-    _new_session, raw_access_token, raw_refresh_token = MobileSessions::TokenIssuer.issue_for(user)
+    unless user
+      return render_unauthorized("Invalid or expired refresh token")
+    end
 
-    render json: auth_session_payload(
-      raw_access_token: raw_access_token,
-      raw_refresh_token: raw_refresh_token,
-      user: user
-    ), status: :ok
+    render json: auth_session_payload(access_token: access_token, user: user), status: :ok
   end
 end

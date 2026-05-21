@@ -8,21 +8,25 @@ module Api::Mobile::V1::ResponsePayloads
   private
 
   def user_payload(user)
+    first_name = user.try(:first_name)
+    last_name = user.try(:last_name)
+    full_name = user.try(:full_name).presence || user.email
+
     {
       id: user.id,
       email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      full_name: user.full_name
+      first_name: first_name,
+      last_name: last_name,
+      full_name: full_name
     }
   end
 
-  def auth_session_payload(raw_access_token:, raw_refresh_token:, user:)
+  def auth_session_payload(access_token:, user:)
     {
-      access_token: raw_access_token,
-      refresh_token: raw_refresh_token,
+      access_token: access_token.token,
+      refresh_token: access_token.refresh_token,
       token_type: "Bearer",
-      expires_in: MobileSessions::TokenIssuer::EXPIRES_IN_SECONDS,
+      expires_in: access_token.expires_in,
       user: user_payload(user)
     }
   end

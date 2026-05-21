@@ -5,21 +5,31 @@ module MobileApiRequestHelpers
     @mobile_auth_headers || {}
   end
 
-  def authorize_mobile_user(user)
-    raw_access_token = SecureRandom.urlsafe_base64(32)
-    raw_refresh_token = SecureRandom.urlsafe_base64(32)
+  def ensure_mobile_oauth_application!
+    Doorkeeper::Application.find_or_create_by!(name: "Fetza Mobile") do |application|
+      application.uid = "fetza-mobile-test"
+      application.secret = Doorkeeper::OAuth::Helpers::UniqueToken.generate
+      application.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+      application.confidential = false
+      application.scopes = ""
+    end
+  end
 
-    MobileSession.create!(
-      user: user,
-      access_token_digest: MobileSessions::TokenIssuer.digest(raw_access_token),
-      refresh_token_digest: MobileSessions::TokenIssuer.digest(raw_refresh_token),
-      access_token_expires_at: 1.hour.from_now,
-      refresh_token_expires_at: 30.days.from_now
+  def authorize_mobile_user(user)
+    ensure_mobile_oauth_application!
+
+    access_token = Doorkeeper::AccessToken.create!(
+      application: Doorkeeper::Application.find_by!(name: "Fetza Mobile"),
+      resource_owner_id: user.id,
+      expires_in: Doorkeeper.configuration.access_token_expires_in,
+      use_refresh_token: true,
+      scopes: ""
     )
 
-    @mobile_auth_headers = { "Authorization" => "Bearer #{raw_access_token}" }
-    @mobile_raw_access_token = raw_access_token
-    @mobile_raw_refresh_token = raw_refresh_token
+    @mobile_auth_headers = { "Authorization" => "Bearer #{access_token.token}" }
+    @mobile_raw_access_token = access_token.token
+    @mobile_raw_refresh_token = access_token.refresh_token
+    access_token
   end
 
   %i[get post patch put delete].each do |http_method|
@@ -34,6 +44,7 @@ RSpec.shared_context "mobile api current user" do
   let!(:user) { create(:user) }
 
   before do
+    ensure_mobile_oauth_application!
     authorize_mobile_user(user)
   end
 end

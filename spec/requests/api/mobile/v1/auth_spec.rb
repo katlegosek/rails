@@ -14,6 +14,8 @@ RSpec.describe "Mobile auth API", type: :request do
     )
   end
 
+  before { ensure_mobile_oauth_application! }
+
   def login_payload(email: auth_user.email, pass: password)
     { email: email, password: pass }
   end
@@ -31,7 +33,7 @@ RSpec.describe "Mobile auth API", type: :request do
       expect(body["access_token"]).to be_present
       expect(body["refresh_token"]).to be_present
       expect(body["token_type"]).to eq("Bearer")
-      expect(body["expires_in"]).to eq(3600)
+      expect(body["expires_in"]).to eq(7200)
       expect(body["user"]).to include(
         "id" => auth_user.id,
         "email" => "dev@fetza.local",
@@ -40,8 +42,10 @@ RSpec.describe "Mobile auth API", type: :request do
         "full_name" => "Dev User"
       )
 
-      digest = MobileSessions::TokenIssuer.digest(body["access_token"])
-      expect(MobileSession.active.find_by(access_token_digest: digest)).to be_present
+      token = Doorkeeper::AccessToken.by_token(body["access_token"])
+      expect(token).to be_present
+      expect(token).to be_accessible
+      expect(token.resource_owner_id).to eq(auth_user.id)
     end
 
     it "returns unauthorized for invalid password" do
@@ -52,7 +56,7 @@ RSpec.describe "Mobile auth API", type: :request do
       expect(response).to have_http_status(:unauthorized)
       expect(api_error(response.parsed_body)).to include(
         "code" => "unauthorized",
-        "message" => "Invalid email or password"
+        "message" => "Invalid email or password."
       )
     end
   end
@@ -75,12 +79,15 @@ RSpec.describe "Mobile auth API", type: :request do
       get "/api/mobile/v1/auth/me"
 
       expect(response).to have_http_status(:unauthorized)
-      expect(api_error(response.parsed_body)).to include("code" => "unauthorized")
+      expect(api_error(response.parsed_body)).to include(
+        "code" => "unauthorized",
+        "message" => "You need to sign in to continue."
+      )
     end
   end
 
   describe "POST /api/mobile/v1/auth/logout" do
-    it "revokes the current session" do
+    it "revokes the current token" do
       post "/api/mobile/v1/auth/login", params: login_payload, as: :json
       token = response.parsed_body["access_token"]
 
@@ -112,6 +119,15 @@ RSpec.describe "Mobile auth API", type: :request do
 
       get "/api/mobile/v1/auth/me", headers: auth_headers(new_access)
       expect(response).to have_http_status(:ok)
+    end
+
+    it "returns unauthorized for an invalid refresh token" do
+      post "/api/mobile/v1/auth/refresh",
+        params: { refresh_token: "not-a-valid-refresh-token" },
+        as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(api_error(response.parsed_body)).to include("code" => "unauthorized")
     end
   end
 
