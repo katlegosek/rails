@@ -8,7 +8,7 @@ Search this repo: `rg 'TODO(production)'`
 
 | Item | Location |
 |------|----------|
-| **No auth** — always `User.first` | `app/controllers/api/mobile/v1/base_controller.rb` |
+| **Mobile auth** — `MobileSession` bearer tokens; enable `EXPO_PUBLIC_AUTH_ENABLED=true` in the app | `app/controllers/api/mobile/v1/auth_controller.rb` |
 | **Fake OCR** | `app/jobs/process_receipt_job.rb` → `Receipts::FakeOcrProcessor` |
 | **ngrok hosts** | `config/environments/development.rb` (dev env only — do not duplicate in production.rb) |
 

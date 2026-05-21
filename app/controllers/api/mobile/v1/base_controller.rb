@@ -7,6 +7,8 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   skip_forgery_protection
 
+  before_action :authenticate_mobile_user!
+
   rescue_from StandardError, with: :handle_internal_error
   rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
@@ -16,9 +18,39 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   private
 
-  # TODO(production): Replace User.first with real auth (Doorkeeper/JWT). See docs/DEV_ONLY_TODOS.md
   def current_mobile_user
-    @current_mobile_user ||= User.first
+    @current_mobile_user
+  end
+
+  def current_mobile_session
+    @current_mobile_session
+  end
+
+  def authenticate_mobile_user!
+    raw_access_token = bearer_access_token
+    session = MobileSessions::TokenIssuer.find_active_by_access_token(raw_access_token)
+
+    unless session
+      return render_unauthorized
+    end
+
+    session.touch_last_used!
+    @current_mobile_session = session
+    @current_mobile_user = session.user
+  end
+
+  def bearer_access_token
+    authorization = request.headers["Authorization"].to_s
+    return if authorization.blank?
+
+    scheme, token = authorization.split(" ", 2)
+    return unless scheme.casecmp("Bearer").zero?
+
+    token.presence
+  end
+
+  def render_unauthorized(message = "Unauthorized")
+    render_api_error(code: :unauthorized, message: message, status: :unauthorized)
   end
 
   def render_api_error(code:, message:, status:, details: nil)

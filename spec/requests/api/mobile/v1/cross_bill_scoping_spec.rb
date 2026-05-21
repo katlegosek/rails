@@ -15,7 +15,7 @@ RSpec.describe "Cross-bill scoping", type: :request do
   let!(:other_participant) { create(:bill_participant, bill: other_bill, name: "Other") }
 
   before do
-    allow(User).to receive(:first).and_return(owner)
+    authorize_mobile_user(owner)
   end
 
   it "cannot assign a receipt item to a participant from another bill" do

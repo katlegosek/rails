@@ -7,6 +7,26 @@ module Api::Mobile::V1::ResponsePayloads
 
   private
 
+  def user_payload(user)
+    {
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      full_name: user.full_name
+    }
+  end
+
+  def auth_session_payload(raw_access_token:, raw_refresh_token:, user:)
+    {
+      access_token: raw_access_token,
+      refresh_token: raw_refresh_token,
+      token_type: "Bearer",
+      expires_in: MobileSessions::TokenIssuer::EXPIRES_IN_SECONDS,
+      user: user_payload(user)
+    }
+  end
+
   def bill_index_payload(bill)
     {
       id: bill.id,

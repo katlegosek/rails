@@ -60,8 +60,17 @@ else
     confirmed_at: Time.zone.now
   ).find_or_create_by!(email: "katlego@fetza.test")
 
-  # Mobile API uses User.first until auth exists; demo bills must belong to that user.
-  bill_owner = User.order(:id).first
+  User.create_with(
+    first_name: "Dev",
+    last_name: "User",
+    password: "password123",
+    role: "user",
+    otp_secret_key: User.otp_random_secret,
+    confirmed_at: Time.zone.now
+  ).find_or_create_by!(email: "dev@fetza.local")
+
+  # Demo bills belong to the mobile dev user (sign in via POST /api/mobile/v1/auth/login).
+  bill_owner = User.find_by(email: "dev@fetza.local") || User.order(:id).first
 
   def assign_equal_split(receipt_item, participants)
     count = participants.size
@@ -319,6 +328,7 @@ else
   puts "Assignments:        #{ItemAssignment.count}"
   puts "  Observatory (#{observatory_bill.id}): #{observatory_items.count} items, #{ItemAssignment.where(receipt_item_id: observatory_items.map(&:id)).count} assignments (partial)"
   puts "  Friday Night Out (#{friday_bill.id}): #{friday_items.count} items, #{ItemAssignment.where(receipt_item_id: friday_items.map(&:id)).count} assignments (full)"
-  puts "Bill owner (User.first): #{bill_owner.email}"
+  puts "Bill owner (mobile dev): #{bill_owner.email}"
+  puts "Mobile login: dev@fetza.local / password123"
   puts "-----------------------------------\n"
 end

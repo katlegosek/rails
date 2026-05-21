@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,6 +77,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
     t.index ["bill_participant_id"], name: "index_item_assignments_on_bill_participant_id"
     t.index ["receipt_item_id", "bill_participant_id"], name: "index_item_assignments_on_receipt_item_and_participant", unique: true
     t.index ["receipt_item_id"], name: "index_item_assignments_on_receipt_item_id"
+  end
+
+  create_table "mobile_sessions", force: :cascade do |t|
+    t.string "access_token_digest", null: false
+    t.datetime "access_token_expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "last_used_at"
+    t.string "refresh_token_digest", null: false
+    t.datetime "refresh_token_expires_at", null: false
+    t.datetime "revoked_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["access_token_digest"], name: "index_mobile_sessions_on_access_token_digest", unique: true
+    t.index ["refresh_token_digest"], name: "index_mobile_sessions_on_refresh_token_digest", unique: true
+    t.index ["user_id"], name: "index_mobile_sessions_on_user_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -266,6 +281,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   add_foreign_key "bills", "users"
   add_foreign_key "item_assignments", "bill_participants"
   add_foreign_key "item_assignments", "receipt_items"
+  add_foreign_key "mobile_sessions", "users"
   add_foreign_key "notifications_users", "notifications"
   add_foreign_key "notifications_users", "users"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"

@@ -40,6 +40,12 @@ Rails.application.routes.draw do
     namespace :mobile do
       namespace :v1 do
         get "health", to: "health#show"
+        scope :auth, controller: "auth" do
+          post "login", action: :login
+          post "logout", action: :logout
+          get "me", action: :me
+          post "refresh", action: :refresh
+        end
         resources :bills, only: %i[index show create] do
           member do
             get :summary
