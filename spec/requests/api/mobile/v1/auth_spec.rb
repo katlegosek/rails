@@ -59,6 +59,39 @@ RSpec.describe "Mobile auth API", type: :request do
         "message" => "Invalid email or password."
       )
     end
+
+    it "returns the same generic unauthorized message when email is unknown" do
+      post "/api/mobile/v1/auth/login",
+        params: login_payload(email: "no-such-user@fetza.test"),
+        as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(api_error(response.parsed_body)["message"]).to eq("Invalid email or password.")
+    end
+
+    it "normalizes email casing/whitespace" do
+      post "/api/mobile/v1/auth/login",
+        params: { email: "  DEV@Fetza.Local  ", password: password },
+        as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["user"]["email"]).to eq("dev@fetza.local")
+    end
+
+    it "locks the account after Devise.maximum_attempts failed logins" do
+      max_attempts = User.maximum_attempts
+      max_attempts.times do
+        post "/api/mobile/v1/auth/login",
+          params: login_payload(pass: "wrong-password"),
+          as: :json
+      end
+
+      expect(auth_user.reload).to be_access_locked
+
+      # Even the right password is rejected while the account is locked.
+      post "/api/mobile/v1/auth/login", params: login_payload, as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
   end
 
   describe "GET /api/mobile/v1/auth/me" do
@@ -75,6 +108,19 @@ RSpec.describe "Mobile auth API", type: :request do
       )
     end
 
+    it "never exposes Devise sensitive fields in the /me payload" do
+      post "/api/mobile/v1/auth/login", params: login_payload, as: :json
+      token = response.parsed_body["access_token"]
+
+      get "/api/mobile/v1/auth/me", headers: auth_headers(token)
+
+      user = response.parsed_body["user"]
+      %w[encrypted_password password reset_password_token reset_password_sent_at
+         confirmation_token unlock_token otp_secret_key].each do |key|
+        expect(user).not_to have_key(key), "expected /me payload not to expose #{key}"
+      end
+    end
+
     it "returns unauthorized without a token" do
       get "/api/mobile/v1/auth/me"
 
@@ -83,6 +129,27 @@ RSpec.describe "Mobile auth API", type: :request do
         "code" => "unauthorized",
         "message" => "You need to sign in to continue."
       )
+    end
+
+    it "returns unauthorized with a garbage token" do
+      get "/api/mobile/v1/auth/me", headers: auth_headers("not-a-real-token")
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(api_error(response.parsed_body)).to include(
+        "code" => "unauthorized",
+        "message" => "You need to sign in to continue."
+      )
+    end
+
+    it "returns unauthorized when the user behind a valid token no longer exists" do
+      post "/api/mobile/v1/auth/login", params: login_payload, as: :json
+      token = response.parsed_body["access_token"]
+
+      auth_user.destroy!
+
+      get "/api/mobile/v1/auth/me", headers: auth_headers(token)
+
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 
@@ -119,6 +186,33 @@ RSpec.describe "Mobile auth API", type: :request do
 
       get "/api/mobile/v1/auth/me", headers: auth_headers(new_access)
       expect(response).to have_http_status(:ok)
+    end
+
+    it "returns the same response shape as login" do
+      post "/api/mobile/v1/auth/login", params: login_payload, as: :json
+      refresh_token = response.parsed_body["refresh_token"]
+
+      post "/api/mobile/v1/auth/refresh", params: { refresh_token: refresh_token }, as: :json
+
+      expect(response.parsed_body.keys).to include(
+        "access_token", "refresh_token", "token_type", "expires_in", "user"
+      )
+      expect(response.parsed_body["token_type"]).to eq("Bearer")
+      expect(response.parsed_body["user"]).to include(
+        "id" => auth_user.id,
+        "email" => "dev@fetza.local"
+      )
+    end
+
+    it "rejects a refresh token that has already been used (single-use rotation)" do
+      post "/api/mobile/v1/auth/login", params: login_payload, as: :json
+      refresh_token = response.parsed_body["refresh_token"]
+
+      post "/api/mobile/v1/auth/refresh", params: { refresh_token: refresh_token }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      post "/api/mobile/v1/auth/refresh", params: { refresh_token: refresh_token }, as: :json
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "returns unauthorized for an invalid refresh token" do

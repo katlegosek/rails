@@ -3,6 +3,8 @@
 class Api::Mobile::V1::BaseController < ApplicationController
   include Api::Mobile::V1::ResponsePayloads
 
+  UNAUTHORIZED_MESSAGE = "You need to sign in to continue."
+
   respond_to :json
 
   skip_forgery_protection
@@ -26,20 +28,25 @@ class Api::Mobile::V1::BaseController < ApplicationController
     @current_doorkeeper_token
   end
 
+  # Resolves the bearer token and the user behind it, rejecting requests with
+  # a missing/invalid/expired/revoked token, a missing user, or a soft-deleted
+  # user. All failure paths render the same JSON shape so the mobile app can
+  # treat any 401 here uniformly.
   def authenticate_mobile_user!
     @current_doorkeeper_token = MobileAuth::TokenIssuer.find_accessible_access_token(
       bearer_access_token
     )
-
-    unless @current_doorkeeper_token
-      return render_unauthorized("You need to sign in to continue.")
-    end
+    return render_unauthorized unless @current_doorkeeper_token
 
     @current_mobile_user = User.find_by(id: @current_doorkeeper_token.resource_owner_id)
+    return render_unauthorized unless @current_mobile_user
+    return render_unauthorized if mobile_user_deleted?(@current_mobile_user)
 
-    unless @current_mobile_user
-      return render_unauthorized("You need to sign in to continue.")
-    end
+    nil
+  end
+
+  def mobile_user_deleted?(user)
+    user.respond_to?(:deleted_at) && user.deleted_at.present?
   end
 
   def bearer_access_token
@@ -47,17 +54,22 @@ class Api::Mobile::V1::BaseController < ApplicationController
     return if authorization.blank?
 
     scheme, token = authorization.split(" ", 2)
-    return unless scheme.casecmp("Bearer").zero?
+    return unless scheme && scheme.casecmp("Bearer").zero?
 
-    token.presence
+    token.to_s.strip.presence
   end
 
+  # Tolerant of missing/already-revoked tokens — used by /auth/logout, which
+  # should always return success.
   def revoke_bearer_access_token_if_present
-    token = MobileAuth::TokenIssuer.find_accessible_access_token(bearer_access_token)
-    token&.revoke
+    raw = bearer_access_token
+    return if raw.blank?
+
+    token = Doorkeeper::AccessToken.by_token(raw)
+    token&.revoke unless token.nil? || token.revoked?
   end
 
-  def render_unauthorized(message = "You need to sign in to continue.")
+  def render_unauthorized(message = UNAUTHORIZED_MESSAGE)
     render_api_error(code: :unauthorized, message: message, status: :unauthorized)
   end
 

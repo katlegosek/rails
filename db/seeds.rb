@@ -1,31 +1,33 @@
 # frozen_string_literal: true
 
+# Public mobile OAuth client used by the Expo app. Idempotent in every
+# environment so a fresh deploy always has a usable "Fetza Mobile" record.
+# - Public client: no secret is shared with the mobile app, the secret is
+#   stored only server-side for any future Doorkeeper-internal use.
+# - UID/secret come from ENV in production, with a stable dev default
+#   in non-production so local devs share the same client across machines.
+Doorkeeper::Application.create_with(
+  confidential: false,
+  redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
+  scopes: "",
+  secret: ENV.fetch("FETZA_MOBILE_OAUTH_SECRET") { Doorkeeper::OAuth::Helpers::UniqueToken.generate }
+).find_or_create_by!(
+  name: MobileAuth::TokenIssuer::MOBILE_APP_NAME,
+  uid: ENV.fetch("FETZA_MOBILE_OAUTH_UID") { Rails.env.production? ? Doorkeeper::OAuth::Helpers::UniqueToken.generate : "fetza-mobile-dev" }
+)
+
 if Rails.env.production?
-  Doorkeeper::Application.create_with(
-    scopes: %w[read write],
-    redirect_uri: "http://localhost:3000",
-    uid: Doorkeeper::OAuth::Helpers::UniqueToken.generate,
-    secret: Doorkeeper::OAuth::Helpers::UniqueToken.generate
-  ).find_or_create_by!(name: "Template")
+  # Production stops here — no demo users or sample bills.
+  Rails.logger.info("[seeds] Fetza Mobile Doorkeeper application ensured. Skipping demo data in production.")
 else
+  # ---- Non-production: legacy admin/web template Doorkeeper app ----
+  # Kept stable for dev convenience; the UID/secret below are NOT used in production.
   Doorkeeper::Application.create_with(
     scopes: %w[read write],
     redirect_uri: "http://localhost:3000",
     uid: "nqAFzOUUniN8PCCZfzsRfMkDPIyc9KgreM96MymzPMA",
     secret: "jmNJE31IYCEKLt5621YMw6LOCGkwbzaNL4U1SU-G__Y"
   ).find_or_create_by!(name: "RailsViewTemplate")
-
-  # Public mobile client (password grant via custom /api/mobile/v1/auth/login — no client secret in the app).
-  # TODO(production): set FETZA_MOBILE_OAUTH_UID / FETZA_MOBILE_OAUTH_SECRET via env for each environment.
-  Doorkeeper::Application.create_with(
-    confidential: false,
-    redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
-    scopes: "",
-    secret: ENV.fetch("FETZA_MOBILE_OAUTH_SECRET", Doorkeeper::OAuth::Helpers::UniqueToken.generate)
-  ).find_or_create_by!(
-    name: "Fetza Mobile",
-    uid: ENV.fetch("FETZA_MOBILE_OAUTH_UID", "fetza-mobile-dev")
-  )
 
   User.create_with(
     first_name: "Default",

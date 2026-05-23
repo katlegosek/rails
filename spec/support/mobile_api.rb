@@ -6,7 +6,7 @@ module MobileApiRequestHelpers
   end
 
   def ensure_mobile_oauth_application!
-    Doorkeeper::Application.find_or_create_by!(name: "Fetza Mobile") do |application|
+    Doorkeeper::Application.find_or_create_by!(name: MobileAuth::TokenIssuer::MOBILE_APP_NAME) do |application|
       application.uid = "fetza-mobile-test"
       application.secret = Doorkeeper::OAuth::Helpers::UniqueToken.generate
       application.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
@@ -18,13 +18,7 @@ module MobileApiRequestHelpers
   def authorize_mobile_user(user)
     ensure_mobile_oauth_application!
 
-    access_token = Doorkeeper::AccessToken.create!(
-      application: Doorkeeper::Application.find_by!(name: "Fetza Mobile"),
-      resource_owner_id: user.id,
-      expires_in: Doorkeeper.configuration.access_token_expires_in,
-      use_refresh_token: true,
-      scopes: ""
-    )
+    access_token = MobileAuth::TokenIssuer.issue_for(user)
 
     @mobile_auth_headers = { "Authorization" => "Bearer #{access_token.token}" }
     @mobile_raw_access_token = access_token.token

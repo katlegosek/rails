@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  use_doorkeeper
+  # The mobile app does NOT use Doorkeeper's standard OAuth endpoints.
+  # Tokens are issued by our custom controllers under /api/mobile/v1/auth/*
+  # (see Api::Mobile::V1::AuthController + MobileAuth::TokenIssuer).
+  # We intentionally do NOT mount /oauth/authorize, /oauth/applications, etc.
+  # If we adopt Authorization Code + PKCE in the future, mount only `:authorizations`
+  # and `:tokens` here.
+  use_doorkeeper do
+    skip_controllers :all
+  end
+
   devise_for :users, controllers: { registrations: "registrations" }
   devise_scope :user do
     get "users/confirm", to: "registrations#confirm", as: :confirm_registration

@@ -8,7 +8,7 @@ Rails backend for the Fetza bill-splitting app.
 - PostgreSQL (primary + Solid Queue / Solid Cache / Solid Cable databases)
 - Active Job → **Solid Queue** (no Sidekiq/Redis)
 - mission_control-jobs for job monitoring
-- Devise + Doorkeeper (present from template; mobile auth not wired yet)
+- Devise + Doorkeeper (mobile bearer-token auth — see [`docs/mobile_auth.md`](docs/mobile_auth.md))
 - rack-cors for Expo development
 
 ## Requirements
@@ -55,19 +55,18 @@ bundle exec rails server
 
 ## Mobile API
 
+See [`docs/mobile_auth.md`](docs/mobile_auth.md) for the full authentication
+guide (endpoints, response shape, dev credentials, curl examples, JWT secret
+configuration, refresh-token rotation, and the path to PKCE).
+
 Health check (no auth):
 
 ```
 GET /api/mobile/v1/health
 ```
 
-Response:
-
 ```json
-{
-  "status": "ok",
-  "app": "bill-splitting-api"
-}
+{ "status": "ok", "app": "bill-splitting-api" }
 ```
 
 Point the Expo app at `http://localhost:3000` (or your machine IP) in development. CORS allows localhost, Expo `exp://` URLs, and `*.exp.direct` tunnels.
