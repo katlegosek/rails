@@ -34,12 +34,12 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
     return render_not_found("Receipt item not found") unless item
 
     bill = item.bill
-    item_json = receipt_item_payload(item)
+    item_json = Api::Mobile::V1::ReceiptItemSerializer.new(item).as_json
     item.destroy!
 
     render json: {
       receipt_item: item_json,
-      bill_summary: bill_summary_payload(bill)
+      bill_summary: serialized_bill_summary(bill)
     }
   end
 
@@ -91,8 +91,8 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
 
   def render_receipt_item_response(item, bill, status: :ok)
     render json: {
-      receipt_item: receipt_item_payload(item),
-      bill_summary: bill_summary_payload(bill)
+      receipt_item: Api::Mobile::V1::ReceiptItemSerializer.new(item).as_json,
+      bill_summary: serialized_bill_summary(bill)
     }, status: status
   end
 end

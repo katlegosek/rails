@@ -30,12 +30,12 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
     return render_not_found("Participant not found") unless participant
 
     bill = participant.bill
-    participant_json = bill_participant_payload(participant)
+    participant_json = Api::Mobile::V1::BillParticipantSerializer.new(participant).as_json
     participant.destroy!
 
     render json: {
       participant: participant_json,
-      bill_summary: bill_summary_payload(bill)
+      bill_summary: serialized_bill_summary(bill)
     }
   end
 
@@ -66,8 +66,8 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
 
   def render_participant_response(participant, bill, status: :ok)
     render json: {
-      participant: bill_participant_payload(participant),
-      bill_summary: bill_summary_payload(bill)
+      participant: Api::Mobile::V1::BillParticipantSerializer.new(participant).as_json,
+      bill_summary: serialized_bill_summary(bill)
     }, status: status
   end
 end

@@ -69,6 +69,6 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
   end
 
   def render_bill_summary_response(bill)
-    render json: { bill_summary: bill_summary_payload(bill) }
+    render json: { bill_summary: serialized_bill_summary(bill) }
   end
 end

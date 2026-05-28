@@ -29,9 +29,9 @@ class Api::Mobile::V1::ReceiptImagesController < Api::Mobile::V1::BaseController
     ProcessReceiptJob.perform_later(receipt.id)
 
     render json: {
-      receipt: receipt_status_payload(receipt),
-      receipt_image: receipt_image_payload(receipt_image),
-      processing_run: processing_run_payload(processing_run)
+      receipt: Api::Mobile::V1::ReceiptStatusSerializer.new(receipt).as_json,
+      receipt_image: Api::Mobile::V1::ReceiptImageSerializer.new(receipt_image).as_json,
+      processing_run: Api::Mobile::V1::ReceiptProcessingRunSerializer.new(processing_run).as_json
     }, status: :created
   end
 

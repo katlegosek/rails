@@ -27,7 +27,7 @@ class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
 
     access_token = MobileAuth::TokenIssuer.issue_for(user)
 
-    render json: auth_session_payload(access_token: access_token, user: user), status: :ok
+    render json: auth_session_json(access_token: access_token, user: user), status: :ok
   end
 
   def logout
@@ -37,7 +37,7 @@ class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
   end
 
   def me
-    render json: { user: user_payload(current_mobile_user) }, status: :ok
+    render json: { user: Api::Mobile::V1::AuthUserSerializer.new(current_mobile_user).as_json }, status: :ok
   end
 
   # Single-use refresh tokens — see MobileAuth::TokenIssuer#refresh.
@@ -50,10 +50,17 @@ class Api::Mobile::V1::AuthController < Api::Mobile::V1::BaseController
     user = User.find_by(id: access_token.resource_owner_id)
     return render_unauthorized("Invalid or expired refresh token") unless user
 
-    render json: auth_session_payload(access_token: access_token, user: user), status: :ok
+    render json: auth_session_json(access_token: access_token, user: user), status: :ok
   end
 
   private
+
+  def auth_session_json(access_token:, user:)
+    Api::Mobile::V1::AuthSessionSerializer.new(
+      access_token: access_token,
+      user: user
+    ).as_json
+  end
 
   # Manually maintain Devise's :lockable counters for the mobile login path.
   # We can't go through Devise's `valid_for_authentication?` here because

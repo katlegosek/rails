@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Api::Mobile::V1::BaseController < ApplicationController
-  include Api::Mobile::V1::ResponsePayloads
-
   UNAUTHORIZED_MESSAGE = "You need to sign in to continue."
 
   respond_to :json
@@ -181,5 +179,26 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   def normalize_error_details(details)
     details.to_h.transform_keys(&:to_s).transform_values { |value| Array(value) }
+  end
+
+  # Re-loads the bill scoped to the current user and eager-loads the
+  # associations Bills::Summary needs. Used by every controller that
+  # renders the `bill_summary:` payload so summary computation always
+  # uses an authorized record (and never accidentally includes another
+  # user's data via the passed-in instance).
+  def bill_for_summary(bill)
+    current_mobile_user.bills
+      .includes(
+        :receipt_items,
+        :bill_participants,
+        receipt: :receipt_adjustments,
+        receipt_items: :item_assignments,
+        bill_participants: :item_assignments
+      )
+      .find(bill.id)
+  end
+
+  def serialized_bill_summary(bill)
+    Api::Mobile::V1::BillSummarySerializer.new(bill_for_summary(bill)).as_json
   end
 end

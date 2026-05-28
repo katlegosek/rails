@@ -42,8 +42,8 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
 
   def render_receipt_item_response(receipt_item)
     render json: {
-      receipt_item: receipt_item_payload(receipt_item),
-      bill_summary: bill_summary_payload(receipt_item.bill)
+      receipt_item: Api::Mobile::V1::ReceiptItemSerializer.new(receipt_item).as_json,
+      bill_summary: serialized_bill_summary(receipt_item.bill)
     }
   end
 end

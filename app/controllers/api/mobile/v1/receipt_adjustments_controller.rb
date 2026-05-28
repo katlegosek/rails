@@ -30,12 +30,12 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
     return render_not_found("Receipt adjustment not found") unless adjustment
 
     bill = adjustment.receipt.bill
-    adjustment_json = receipt_adjustment_payload(adjustment)
+    adjustment_json = Api::Mobile::V1::ReceiptAdjustmentSerializer.new(adjustment).as_json
     adjustment.destroy!
 
     render json: {
       receipt_adjustment: adjustment_json,
-      bill_summary: bill_summary_payload(bill)
+      bill_summary: serialized_bill_summary(bill)
     }
   end
 
@@ -86,8 +86,8 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
 
   def render_adjustment_response(adjustment, bill, status: :ok)
     render json: {
-      receipt_adjustment: receipt_adjustment_payload(adjustment),
-      bill_summary: bill_summary_payload(bill)
+      receipt_adjustment: Api::Mobile::V1::ReceiptAdjustmentSerializer.new(adjustment).as_json,
+      bill_summary: serialized_bill_summary(bill)
     }, status: status
   end
 end

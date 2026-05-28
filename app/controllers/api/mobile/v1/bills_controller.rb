@@ -6,7 +6,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
       .includes(:bill_participants, receipt: :receipt_processing_runs)
       .order(created_at: :desc)
 
-    render json: { bills: bills.map { |bill| bill_index_payload(bill) } }
+    render json: { bills: Api::Mobile::V1::BillListItemSerializer.collection(bills) }
   end
 
   def create
@@ -15,7 +15,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
       title: bill_create_title
     )
 
-    render json: { bill: bill_payload(bill) }, status: :created
+    render json: { bill: Api::Mobile::V1::BillResourceSerializer.new(bill).as_json }, status: :created
   end
 
   def show
@@ -30,7 +30,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
 
     return render_not_found("Bill not found") unless bill
 
-    render json: bill_show_json(bill)
+    render json: Api::Mobile::V1::BillSerializer.new(bill).as_json
   end
 
   def summary
@@ -46,23 +46,12 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
 
     return render_not_found("Bill not found") unless bill
 
-    render json: bill_summary_payload(bill)
+    render json: Api::Mobile::V1::BillSummarySerializer.new(bill).as_json
   end
 
   private
 
   def bill_create_title
     params.dig(:bill, :title).presence || "New bill"
-  end
-
-  def bill_show_json(bill)
-    {
-      bill: bill_payload(bill),
-      receipt: bill.receipt ? receipt_payload(bill.receipt) : nil,
-      receipt_items: bill.receipt_items.order(:position).map { |item| receipt_item_payload(item) },
-      receipt_adjustments: bill.receipt&.receipt_adjustments&.order(:position)&.map { |adjustment| receipt_adjustment_payload(adjustment) } || [],
-      bill_participants: bill.bill_participants.order(:seat_index, :id).map { |participant| bill_participant_payload(participant) },
-      item_assignments: bill.item_assignments.map { |assignment| item_assignment_payload(assignment) }
-    }
   end
 end
