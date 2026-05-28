@@ -50,11 +50,12 @@ expired, or revoked token returns `401 Unauthorized`.
 }
 ```
 
-The user payload is built by
-`Api::Mobile::V1::ResponsePayloads::AuthPayloads#user_payload`. It is
-intentionally minimal — sensitive Devise/Doorkeeper fields
-(`encrypted_password`, `reset_password_token`, OAuth secrets, etc.) are
-**never** exposed.
+The user payload is built by `Api::Mobile::V1::AuthUserSerializer` and
+wrapped together with token fields by
+`Api::Mobile::V1::AuthSessionSerializer`. Both live under
+`app/serializers/api/mobile/v1/`. The user payload is intentionally
+minimal — sensitive Devise/Doorkeeper fields (`encrypted_password`,
+`reset_password_token`, OAuth secrets, etc.) are **never** exposed.
 
 ### Errors
 
@@ -211,7 +212,8 @@ recover by exchanging its refresh token for a new pair.
 | Login / refresh / logout / me    | `app/controllers/api/mobile/v1/auth_controller.rb`                  |
 | Bearer auth + error handling     | `app/controllers/api/mobile/v1/base_controller.rb`                  |
 | Token issuance / rotation        | `app/services/mobile_auth/token_issuer.rb`                          |
-| Auth response payload            | `app/controllers/concerns/api/mobile/v1/response_payloads/auth_payloads.rb` |
+| Auth response payload            | `app/serializers/api/mobile/v1/auth_user_serializer.rb` + `auth_session_serializer.rb` |
+| Bill / receipt / participant payloads | `app/serializers/api/mobile/v1/*_serializer.rb`                |
 | Doorkeeper config                | `config/initializers/doorkeeper.rb`                                 |
 | JWT signing config               | `config/initializers/doorkeeper_jwt.rb`                             |
 | Rate limiting                    | `config/initializers/rack_attack.rb`                                |

@@ -13,6 +13,7 @@ Search this repo: `rg 'TODO(production)'`
 | **Migrate to PKCE** — replace the custom `/api/mobile/v1/auth/login` with Authorization Code + PKCE (`force_pkce` is already enabled) | `app/controllers/api/mobile/v1/auth_controller.rb`, `config/initializers/doorkeeper.rb`, `config/routes.rb` |
 | **Fake OCR** | `app/jobs/process_receipt_job.rb` → `Receipts::FakeOcrProcessor` |
 | **ngrok hosts** | `config/environments/development.rb` (dev env only — do not duplicate in production.rb) |
+| **ActiveStorage host for receipt image URLs** — `ReceiptImageSerializer#url_for(blob)` only emits an absolute URL when `default_url_options` (or `ActiveStorage::Current.url_options`) is set; configure per environment before mobile relies on these | `app/serializers/api/mobile/v1/receipt_image_serializer.rb`, `config/environments/*.rb` |
 
 ## Already environment-scoped (verify before launch)
 
