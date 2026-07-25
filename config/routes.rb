@@ -46,6 +46,15 @@ Rails.application.routes.draw do
   end
 
   namespace :api do
+    namespace :public do
+      namespace :v1 do
+        get "bill_rooms/:share_token", to: "bill_rooms#show"
+        post "bill_rooms/:share_token/join", to: "bill_rooms#join"
+        post "bill_rooms/:share_token/items/:receipt_item_id/claim", to: "item_claims#create"
+        delete "bill_rooms/:share_token/items/:receipt_item_id/claim", to: "item_claims#destroy"
+      end
+    end
+
     namespace :mobile do
       namespace :v1 do
         get "health", to: "health#show"

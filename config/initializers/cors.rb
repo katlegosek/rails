@@ -14,10 +14,14 @@ expo_dev_origins = [
   %r{\Aexp://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?\z},
   %r{\Ahttps://[a-z0-9-]+\.exp\.direct\z}
 ]
+configured_web_origins = [
+  ENV["WEB_APP_URL"],
+  ENV["FRONTEND_URL"]
+].compact_blank.map { |origin| origin.delete_suffix("/") }
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins(*(Rails.env.development? ? expo_dev_origins : []))
+    origins(*configured_web_origins, *(Rails.env.development? ? expo_dev_origins : []))
 
     resource "*",
              headers: :any,

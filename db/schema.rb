@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -47,14 +47,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000000) do
     t.string "avatar_text_color"
     t.bigint "bill_id", null: false
     t.datetime "created_at", null: false
+    t.string "guest_token_digest"
     t.string "initials"
     t.boolean "is_host", default: false, null: false
+    t.datetime "joined_at"
     t.string "name", null: false
     t.integer "seat_index"
     t.boolean "settled", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["bill_id", "seat_index"], name: "index_bill_participants_on_bill_id_and_seat_index"
     t.index ["bill_id"], name: "index_bill_participants_on_bill_id"
+    t.index ["guest_token_digest"], name: "index_bill_participants_on_guest_token_digest", unique: true
   end
 
   create_table "bills", force: :cascade do |t|
