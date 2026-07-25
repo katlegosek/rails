@@ -36,6 +36,18 @@ RSpec.describe "Bill participants API", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
     end
+
+    it "does not add participants after finalization" do
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/bills/#{bill.id}/participants", params: {
+        participant: { name: "Sam" }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(bill.bill_participants).to be_empty
+    end
   end
 
   describe "PATCH /api/mobile/v1/bill_participants/:id" do
@@ -70,6 +82,82 @@ RSpec.describe "Bill participants API", type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
+    end
+
+    it "does not update participants after finalization" do
+      bill.update!(session_status: :finalized)
+
+      patch "/api/mobile/v1/bill_participants/#{participant.id}", params: {
+        participant: { name: "Samuel" }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(participant.reload.name).to eq("Sam")
+    end
+  end
+
+  describe "DELETE /api/mobile/v1/bill_participants/:id" do
+    let(:bill) { create(:bill, user: user, session_status: :open) }
+    let(:receipt) { create(:receipt, bill: bill) }
+    let(:item) { create(:receipt_item, bill: bill, receipt: receipt, total_cents: 2_000) }
+    let!(:host) { create(:bill_participant, bill: bill, is_host: true) }
+    let!(:participant) { create(:bill_participant, bill: bill) }
+
+    it "removes a participant and rebalances shared assignments" do
+      create(:item_assignment, receipt_item: item, bill_participant: host, amount_cents: 1_000)
+      create(:item_assignment, receipt_item: item, bill_participant: participant, amount_cents: 1_000)
+
+      delete "/api/mobile/v1/bill_participants/#{participant.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(BillParticipant.exists?(participant.id)).to be(false)
+      expect(item.item_assignments.reload.sole).to have_attributes(
+        bill_participant_id: host.id,
+        amount_cents: item.total_cents
+      )
+      expect(response.parsed_body.dig("bill_summary", "participants").pluck("id")).to contain_exactly(host.id)
+    end
+
+    it "clears a solely claimed item" do
+      create(
+        :item_assignment,
+        receipt_item: item,
+        bill_participant: participant,
+        amount_cents: item.total_cents
+      )
+
+      delete "/api/mobile/v1/bill_participants/#{participant.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(item.item_assignments.reload).to be_empty
+      expect(response.parsed_body.dig("bill_summary", "bill", "unassigned_items_count")).to eq(1)
+    end
+
+    it "does not remove the host" do
+      delete "/api/mobile/v1/bill_participants/#{host.id}"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(BillParticipant.exists?(host.id)).to be(true)
+    end
+
+    it "does not remove participants after finalization" do
+      bill.update!(session_status: :finalized)
+
+      delete "/api/mobile/v1/bill_participants/#{participant.id}"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(BillParticipant.exists?(participant.id)).to be(true)
+    end
+
+    it "does not remove another user's participant" do
+      other = create(:bill_participant, bill: create(:bill, user: create(:user)))
+
+      delete "/api/mobile/v1/bill_participants/#{other.id}"
+
+      expect(response).to have_http_status(:not_found)
+      expect(BillParticipant.exists?(other.id)).to be(true)
     end
   end
 end

@@ -2,8 +2,6 @@
 
 module BillRooms
   class RemoveGuest
-    class RoomClosed < StandardError; end
-
     def self.call(bill:, participant:)
       new(bill: bill, participant: participant).call
     end
@@ -14,48 +12,16 @@ module BillRooms
     end
 
     def call
-      validate_participant!
-
-      ActiveRecord::Base.transaction do
-        bill.lock!
-        raise RoomClosed unless bill.session_open?
-
-        claimed_items.find_each do |receipt_item|
-          receipt_item.with_lock do
-            remaining_participant_ids = receipt_item.item_assignments
-              .where.not(bill_participant_id: participant.id)
-              .pluck(:bill_participant_id)
-
-            ReceiptItems::ReplaceAssignments.call(
-              receipt_item: receipt_item,
-              participant_ids: remaining_participant_ids,
-              split_method: "equal"
-            )
-          end
-        end
-
-        participant.destroy!
-      end
-
-      bill.reload
+      validate_guest!
+      BillRooms::RemoveParticipant.call(bill: bill, participant: participant)
     end
 
     private
 
     attr_reader :bill, :participant
 
-    def claimed_items
-      bill.receipt_items
-        .joins(:item_assignments)
-        .where(item_assignments: { bill_participant_id: participant.id })
-        .order(:id)
-        .distinct
-    end
-
-    def validate_participant!
-      return if participant.bill_id == bill.id &&
-        !participant.is_host? &&
-        participant.guest_token_digest.present?
+    def validate_guest!
+      return if participant.guest_token_digest.present?
 
       raise ArgumentError, "Participant is not a guest in this bill room"
     end
