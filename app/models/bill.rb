@@ -16,7 +16,15 @@ class Bill < ApplicationRecord
     archived: "archived"
   }, default: :draft
 
-  validates :status, presence: true
+  enum :session_status, {
+    draft: "draft",
+    open: "open",
+    finalized: "finalized",
+    closed: "closed"
+  }, prefix: :session, default: :draft
+
+  validates :status, :session_status, presence: true
+  validates :share_token, uniqueness: true, allow_nil: true
 
   def display_title
     title.presence ||
@@ -36,6 +44,18 @@ class Bill < ApplicationRecord
     return unless receipt
 
     receipt.receipt_processing_runs.order(Arel.sql("completed_at DESC NULLS LAST"), created_at: :desc).first
+  end
+
+  def ensure_share_token!
+    return share_token if share_token.present?
+
+    loop do
+      token = SecureRandom.urlsafe_base64(24)
+      next if self.class.exists?(share_token: token)
+
+      update!(share_token: token)
+      return token
+    end
   end
 
   private

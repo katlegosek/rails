@@ -79,6 +79,7 @@ Rails.application.configure do
 
   # TODO(production): Dev-only ngrok allowlist — do not add to production.rb. See docs/DEV_ONLY_TODOS.md
   config.hosts << /[a-z\-0-9]+\.ngrok-free\.app/
+  config.hosts << /[a-z\-0-9]+\.ngrok-free\.dev/
   config.hosts << /[a-z\-0-9]+\.ngrok\.app/
   config.hosts << /[a-z\-0-9]+\.ngrok\.io/
 end

@@ -7,6 +7,7 @@ class Api::Mobile::V1::BaseController < ApplicationController
 
   skip_forgery_protection
 
+  before_action :set_active_storage_url_options
   before_action :authenticate_mobile_user!
 
   rescue_from StandardError, with: :handle_internal_error
@@ -17,6 +18,20 @@ class Api::Mobile::V1::BaseController < ApplicationController
   rescue_from BillAssignments::Invalid, with: :handle_service_validation_error
 
   private
+
+  # Active Storage URL helpers (used by serializers via `url_for`) need a host.
+  # Derive it from the incoming request so image URLs are reachable on whatever
+  # host the client used (ngrok tunnel, localhost simulator, LAN IP device).
+  def set_active_storage_url_options
+    options = {
+      protocol: request.ssl? ? "https" : "http",
+      host: request.host
+    }
+    options[:port] = request.optional_port if request.optional_port
+
+    ActiveStorage::Current.url_options = options
+    Rails.application.routes.default_url_options.merge!(options)
+  end
 
   def current_mobile_user
     @current_mobile_user

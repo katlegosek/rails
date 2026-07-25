@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,11 +58,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   end
 
   create_table "bills", force: :cascade do |t|
+    t.datetime "confirmed_at"
     t.datetime "created_at", null: false
+    t.datetime "finalized_at"
+    t.string "session_status", default: "draft", null: false
+    t.string "share_token"
     t.string "status", default: "draft", null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["session_status"], name: "index_bills_on_session_status"
+    t.index ["share_token"], name: "index_bills_on_share_token", unique: true
     t.index ["status"], name: "index_bills_on_status"
     t.index ["user_id"], name: "index_bills_on_user_id"
   end

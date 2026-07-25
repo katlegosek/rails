@@ -27,6 +27,9 @@ RSpec.describe "Mobile API protected endpoints", type: :request do
     [ :post, "/api/mobile/v1/bills" ],
     [ :get, "/api/mobile/v1/bills/%<bill_id>d" ],
     [ :get, "/api/mobile/v1/bills/%<bill_id>d/summary" ],
+    [ :get, "/api/mobile/v1/bills/%<bill_id>d/room" ],
+    [ :post, "/api/mobile/v1/bills/%<bill_id>d/confirm" ],
+    [ :post, "/api/mobile/v1/bills/%<bill_id>d/finalize" ],
     [ :post, "/api/mobile/v1/bills/%<bill_id>d/split_all_equally" ],
     [ :post, "/api/mobile/v1/bills/%<bill_id>d/split_unassigned_equally" ],
     [ :delete, "/api/mobile/v1/bills/%<bill_id>d/assignments" ],
@@ -40,6 +43,7 @@ RSpec.describe "Mobile API protected endpoints", type: :request do
     [ :put, "/api/mobile/v1/receipt_items/%<item_id>d/assignments" ],
     [ :delete, "/api/mobile/v1/receipt_items/%<item_id>d/assignments" ],
     [ :get, "/api/mobile/v1/receipts/%<receipt_id>d" ],
+    [ :post, "/api/mobile/v1/receipts/%<receipt_id>d/confirm" ],
     [ :post, "/api/mobile/v1/receipts/%<receipt_id>d/adjustments" ],
     [ :patch, "/api/mobile/v1/receipt_adjustments/%<adjustment_id>d" ],
     [ :delete, "/api/mobile/v1/receipt_adjustments/%<adjustment_id>d" ]

@@ -29,7 +29,8 @@ RSpec.describe "Api::Mobile::V1 serializers", type: :model do
       json = described_class.new(bill).as_json
 
       expect(json.keys).to match_array(
-        %i[id title status total_cents receipt_name receipt_date created_at updated_at]
+        %i[id title status session_status share_token share_url confirmed_at finalized_at
+           total_cents receipt_name receipt_date created_at updated_at]
       )
     end
   end
