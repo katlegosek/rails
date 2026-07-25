@@ -50,6 +50,8 @@ Rails.application.routes.draw do
       namespace :v1 do
         get "bill_rooms/:share_token", to: "bill_rooms#show"
         post "bill_rooms/:share_token/join", to: "bill_rooms#join"
+        patch "bill_rooms/:share_token/guest", to: "guest_sessions#update"
+        delete "bill_rooms/:share_token/guest", to: "guest_sessions#destroy"
         post "bill_rooms/:share_token/items/:receipt_item_id/claim", to: "item_claims#create"
         delete "bill_rooms/:share_token/items/:receipt_item_id/claim", to: "item_claims#destroy"
       end

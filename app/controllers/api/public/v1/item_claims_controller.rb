@@ -44,14 +44,6 @@ class Api::Public::V1::ItemClaimsController < Api::Public::V1::BaseController
     render_room(bill, current_participant: participant)
   end
 
-  def render_room_closed
-    render_api_error(
-      code: :room_closed,
-      message: "This bill has already been finalised.",
-      status: :conflict
-    )
-  end
-
   def render_item_not_found
     render_api_error(
       code: :not_found,

@@ -76,6 +76,125 @@ RSpec.describe "Public bill rooms API", type: :request do
       expect(response).to have_http_status(:conflict)
       expect(response.parsed_body.dig("error", "code")).to eq("room_closed")
     end
+
+    it "reuses an existing valid guest session instead of creating a duplicate" do
+      participant = create(:bill_participant, bill: bill, name: "Neo", joined_at: Time.current)
+      guest_token = participant.issue_guest_token!
+
+      expect {
+        post "/api/public/v1/bill_rooms/#{bill.share_token}/join",
+          params: { guest: { name: "Duplicate Neo" } },
+          headers: { "Authorization" => "Bearer #{guest_token}" },
+          as: :json
+      }.not_to change { bill.bill_participants.count }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["current_participant_id"]).to eq(participant.id)
+      expect(response.parsed_body).not_to have_key("guest_token")
+      expect(participant.reload.name).to eq("Neo")
+    end
+
+    it "rejects an invalid existing guest session instead of creating a duplicate" do
+      expect {
+        post "/api/public/v1/bill_rooms/#{bill.share_token}/join",
+          params: { guest: { name: "Neo" } },
+          headers: { "Authorization" => "Bearer invalid" },
+          as: :json
+      }.not_to change { bill.bill_participants.count }
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body.dig("error", "code")).to eq("unauthorized")
+    end
+  end
+
+  describe "guest session management" do
+    let(:participant) { create(:bill_participant, bill: bill, name: "Neo", joined_at: Time.current) }
+    let(:guest_token) { participant.issue_guest_token! }
+    let(:headers) { { "Authorization" => "Bearer #{guest_token}" } }
+
+    it "renames the authenticated guest" do
+      patch "/api/public/v1/bill_rooms/#{bill.share_token}/guest",
+        params: { guest: { name: "  Neo M  " } },
+        headers: headers,
+        as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(participant.reload).to have_attributes(name: "Neo M", initials: "NM")
+      expect(response.parsed_body["current_participant_id"]).to eq(participant.id)
+    end
+
+    it "does not rename a guest with a token from another room" do
+      other_bill = create(:bill, session_status: :open, share_token: "other-room")
+      other_participant = create(:bill_participant, bill: other_bill, joined_at: Time.current)
+      other_token = other_participant.issue_guest_token!
+
+      patch "/api/public/v1/bill_rooms/#{bill.share_token}/guest",
+        params: { guest: { name: "Intruder" } },
+        headers: { "Authorization" => "Bearer #{other_token}" },
+        as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(other_participant.reload.name).not_to eq("Intruder")
+    end
+
+    it "leaves the room and rebalances or clears every affected claim" do
+      create(
+        :item_assignment,
+        receipt_item: first_item,
+        bill_participant: host,
+        amount_cents: 1_000
+      )
+      create(
+        :item_assignment,
+        receipt_item: first_item,
+        bill_participant: participant,
+        amount_cents: 1_000
+      )
+      create(
+        :item_assignment,
+        receipt_item: second_item,
+        bill_participant: participant,
+        amount_cents: 500
+      )
+
+      delete "/api/public/v1/bill_rooms/#{bill.share_token}/guest", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["current_participant_id"]).to be_nil
+      expect(BillParticipant.exists?(participant.id)).to be(false)
+      expect(first_item.item_assignments.reload.sole).to have_attributes(
+        bill_participant_id: host.id,
+        amount_cents: first_item.total_cents
+      )
+      expect(second_item.item_assignments.reload).to be_empty
+
+      get "/api/public/v1/bill_rooms/#{bill.share_token}", headers: headers
+      expect(response.parsed_body["current_participant_id"]).to be_nil
+    end
+
+    it "keeps guest identity and claims immutable after finalization" do
+      create(
+        :item_assignment,
+        receipt_item: first_item,
+        bill_participant: participant,
+        amount_cents: first_item.total_cents
+      )
+      bill.update!(session_status: :finalized)
+
+      patch "/api/public/v1/bill_rooms/#{bill.share_token}/guest",
+        params: { guest: { name: "Changed" } },
+        headers: headers,
+        as: :json
+
+      expect(response).to have_http_status(:conflict)
+      expect(participant.reload.name).to eq("Neo")
+
+      delete "/api/public/v1/bill_rooms/#{bill.share_token}/guest", headers: headers
+
+      expect(response).to have_http_status(:conflict)
+      expect(BillParticipant.exists?(participant.id)).to be(true)
+      expect(first_item.item_assignments.reload.sole.bill_participant_id).to eq(participant.id)
+    end
   end
 
   describe "guest item claims" do

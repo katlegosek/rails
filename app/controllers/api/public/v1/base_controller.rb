@@ -8,6 +8,7 @@ class Api::Public::V1::BaseController < ApplicationController
   rescue_from StandardError, with: :handle_internal_error
   rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
+  rescue_from BillRooms::RemoveGuest::RoomClosed, with: :render_room_closed
 
   private
 
@@ -43,7 +44,7 @@ class Api::Public::V1::BaseController < ApplicationController
 
     render_api_error(
       code: :unauthorized,
-      message: "Join this bill room before claiming items.",
+      message: "Join this bill room to continue.",
       status: :unauthorized
     )
     nil
@@ -73,10 +74,18 @@ class Api::Public::V1::BaseController < ApplicationController
     )
   end
 
+  def render_room_closed(_exception = nil)
+    render_api_error(
+      code: :room_closed,
+      message: "This bill has already been finalised.",
+      status: :conflict
+    )
+  end
+
   def handle_record_invalid(exception)
     render_api_error(
       code: :validation_error,
-      message: "Could not join the bill room.",
+      message: "Could not update the guest session.",
       details: exception.record.errors.messages,
       status: :unprocessable_content
     )

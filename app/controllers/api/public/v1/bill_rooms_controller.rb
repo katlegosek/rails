@@ -16,6 +16,13 @@ class Api::Public::V1::BillRoomsController < Api::Public::V1::BaseController
     return render_not_found unless bill
     return render_room_closed unless bill.session_open?
 
+    if bearer_access_token
+      existing_participant = find_guest_participant(bill, required: false)
+      return render_invalid_guest_token unless existing_participant
+
+      return render_room(bill, current_participant: existing_participant)
+    end
+
     participant = nil
     guest_token = nil
 
@@ -49,11 +56,11 @@ class Api::Public::V1::BillRoomsController < Api::Public::V1::BaseController
     name.to_s.split.filter_map(&:first).first(2).join.upcase
   end
 
-  def render_room_closed
+  def render_invalid_guest_token
     render_api_error(
-      code: :room_closed,
-      message: "This bill has already been finalised.",
-      status: :conflict
+      code: :unauthorized,
+      message: "Your guest session is no longer valid.",
+      status: :unauthorized
     )
   end
 end
