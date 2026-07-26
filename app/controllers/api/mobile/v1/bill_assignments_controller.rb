@@ -4,6 +4,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
   def split_all_equally
     bill = find_bill_for_current_user
     return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
 
     apply_bulk_assignments(
       bill: bill,
@@ -16,6 +17,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
   def split_unassigned_equally
     bill = find_bill_for_current_user
     return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
 
     unassigned_items = bill.receipt_items
       .includes(:item_assignments)
@@ -29,6 +31,7 @@ class Api::Mobile::V1::BillAssignmentsController < Api::Mobile::V1::BaseControll
   def clear
     bill = find_bill_for_current_user
     return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
 
     clear_assignments!(bill)
     render_bill_summary_response(bill)

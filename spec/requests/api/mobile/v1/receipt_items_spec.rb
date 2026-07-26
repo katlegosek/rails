@@ -41,6 +41,18 @@ RSpec.describe "Receipt items API", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
     end
+
+    it "does not create items after finalization" do
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/bills/#{bill.id}/receipt_items", params: {
+        receipt_item: { name: "Late item", unit_price_cents: 1_000 }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(bill.receipt_items).to be_empty
+    end
   end
 
   describe "PATCH /api/mobile/v1/receipt_items/:id" do
@@ -76,6 +88,18 @@ RSpec.describe "Receipt items API", type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
+    end
+
+    it "does not update items after finalization" do
+      bill.update!(session_status: :finalized)
+
+      patch "/api/mobile/v1/receipt_items/#{item.id}", params: {
+        receipt_item: { name: "Changed" }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(item.reload.name).to eq("Burrata")
     end
   end
 end

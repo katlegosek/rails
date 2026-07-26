@@ -3,6 +3,53 @@
 require "rails_helper"
 
 RSpec.describe "Receipts API", type: :request do
+  describe "POST /api/mobile/v1/bills/:bill_id/receipts" do
+    let(:bill) { create(:bill, user: user) }
+
+    it "creates a ready manual receipt" do
+      post "/api/mobile/v1/bills/#{bill.id}/receipts", params: {
+        receipt: {
+          merchant_name: "Corner Bistro",
+          receipt_date: "2026-07-26",
+          subtotal_cents: 10_000,
+          service_fee_cents: 1_000,
+          total_cents: 11_000,
+          currency: "ZAR"
+        }
+      }, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body["receipt"]).to include(
+        "bill_id" => bill.id,
+        "merchant_name" => "Corner Bistro",
+        "status" => "ready",
+        "total_cents" => 11_000
+      )
+    end
+
+    it "does not create a receipt for another user's bill" do
+      other_bill = create(:bill, user: create(:user))
+
+      post "/api/mobile/v1/bills/#{other_bill.id}/receipts", params: {
+        receipt: { merchant_name: "Nope" }
+      }, as: :json
+
+      expect(response).to have_http_status(:not_found)
+      expect(other_bill.reload.receipt).to be_nil
+    end
+
+    it "does not replace receipt data after finalization" do
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/bills/#{bill.id}/receipts", params: {
+        receipt: { merchant_name: "Late edit" }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(bill.reload.receipt).to be_nil
+    end
+  end
+
   describe "GET /api/mobile/v1/receipts/:id" do
     let(:bill) { create(:bill, user: user) }
 
@@ -88,6 +135,17 @@ RSpec.describe "Receipts API", type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
+    end
+
+    it "does not confirm a receipt after bill finalization" do
+      receipt = create(:receipt, bill: bill, status: :ready)
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/receipts/#{receipt.id}/confirm"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(receipt.reload).to be_ready
     end
   end
 end

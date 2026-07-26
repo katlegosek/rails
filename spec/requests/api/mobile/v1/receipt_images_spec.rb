@@ -63,6 +63,20 @@ RSpec.describe "Api::Mobile::V1::ReceiptImages", type: :request do
       expect(api_error(response.parsed_body)).to include("code" => "not_found", "message" => "Bill not found")
     end
 
+    it "does not upload another image after finalization" do
+      bill.update!(session_status: :finalized)
+
+      expect {
+        post "/api/mobile/v1/bills/#{bill.id}/receipt_images", params: {
+          image: receipt_image_upload
+        }
+      }.not_to have_enqueued_job(ProcessReceiptJob)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(bill.reload.receipt).to be_nil
+    end
+
     it "completes fake OCR processing via the background job" do
       post "/api/mobile/v1/bills/#{bill.id}/receipt_images", params: {
         image: receipt_image_upload

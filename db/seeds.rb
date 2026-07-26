@@ -181,8 +181,15 @@ else
     )
   end
 
-  # Bill 1: Observatory Small Plates (partially assigned)
-  observatory_bill = Bill.create!(user: bill_owner, status: :active, title: "Observatory Small Plates")
+  # Bill 1: an open room with a partial set of claims.
+  observatory_bill = Bill.create!(
+    user: bill_owner,
+    status: :active,
+    session_status: :open,
+    title: "Observatory Small Plates",
+    confirmed_at: 2.hours.ago
+  )
+  observatory_bill.ensure_share_token!
   observatory_receipt = Receipt.create!(bill: observatory_bill, status: :confirmed)
 
   observatory_participants = [
@@ -256,8 +263,16 @@ else
     split_method: :custom
   )
 
-  # Bill 2: Friday Night Out (fully assigned)
-  friday_bill = Bill.create!(user: bill_owner, status: :active, title: "Friday Night Out")
+  # Bill 2: a finalized room with every item assigned and settled.
+  friday_bill = Bill.create!(
+    user: bill_owner,
+    status: :completed,
+    session_status: :finalized,
+    title: "Friday Night Out",
+    confirmed_at: 1.day.ago,
+    finalized_at: 23.hours.ago
+  )
+  friday_bill.ensure_share_token!
   friday_receipt = Receipt.create!(bill: friday_bill, status: :confirmed)
 
   friday_participants = [
@@ -340,8 +355,8 @@ else
   puts "Receipt items:      #{ReceiptItem.count}"
   puts "Participants:       #{BillParticipant.count}"
   puts "Assignments:        #{ItemAssignment.count}"
-  puts "  Observatory (#{observatory_bill.id}): #{observatory_items.count} items, #{ItemAssignment.where(receipt_item_id: observatory_items.map(&:id)).count} assignments (partial)"
-  puts "  Friday Night Out (#{friday_bill.id}): #{friday_items.count} items, #{ItemAssignment.where(receipt_item_id: friday_items.map(&:id)).count} assignments (full)"
+  puts "  Observatory (#{observatory_bill.id}): open, #{observatory_items.count} items, #{ItemAssignment.where(receipt_item_id: observatory_items.map(&:id)).count} assignments (partial)"
+  puts "  Friday Night Out (#{friday_bill.id}): finalized, #{friday_items.count} items, #{ItemAssignment.where(receipt_item_id: friday_items.map(&:id)).count} assignments (full)"
   puts "Bill owner (mobile dev): #{bill_owner.email}"
   puts "Mobile login: dev@fetza.local / password123"
   puts "-----------------------------------\n"

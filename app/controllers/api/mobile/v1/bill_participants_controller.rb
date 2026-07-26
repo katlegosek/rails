@@ -4,7 +4,7 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
   def create
     bill = find_bill_for_current_mobile_user(params[:bill_id])
     return render_not_found("Bill not found") unless bill
-    return render_bill_locked if bill_locked?(bill)
+    ensure_bill_mutable!(bill)
 
     participant = bill.bill_participants.build(participant_params)
 
@@ -18,9 +18,10 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
   def update
     participant = find_participant_for_current_mobile_user
     return render_not_found("Participant not found") unless participant
-    return render_bill_locked if bill_locked?(participant.bill)
+    attributes = participant_params
+    ensure_bill_mutable!(participant.bill) if participant_identity_change?(attributes)
 
-    if participant.update(participant_params)
+    if participant.update(attributes)
       return render_participant_response(participant, participant.bill)
     end
 
@@ -47,13 +48,6 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
     }
   end
 
-  rescue_from BillRooms::RemoveParticipant::RoomClosed do
-    render_validation_details(
-      { bill: [ "is already finalized" ] },
-      message: "Finalized bills cannot be changed."
-    )
-  end
-
   private
 
   def find_bill_for_current_mobile_user(bill_id)
@@ -74,7 +68,6 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
       :avatar_background_color,
       :avatar_text_color,
       :seat_index,
-      :is_host,
       :settled
     )
   end
@@ -86,14 +79,7 @@ class Api::Mobile::V1::BillParticipantsController < Api::Mobile::V1::BaseControl
     }, status: status
   end
 
-  def bill_locked?(bill)
-    bill.session_finalized? || bill.session_closed?
-  end
-
-  def render_bill_locked
-    render_validation_details(
-      { bill: [ "is already finalized" ] },
-      message: "Finalized bills cannot be changed."
-    )
+  def participant_identity_change?(attributes)
+    attributes.except(:settled).present?
   end
 end

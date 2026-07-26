@@ -2,8 +2,6 @@
 
 module BillRooms
   class RemoveParticipant
-    class RoomClosed < StandardError; end
-
     def self.call(bill:, participant:)
       new(bill: bill, participant: participant).call
     end
@@ -18,7 +16,7 @@ module BillRooms
 
       ActiveRecord::Base.transaction do
         bill.lock!
-        raise RoomClosed if bill.session_finalized? || bill.session_closed?
+        raise BillRooms::RoomClosed if bill.session_finalized? || bill.session_closed?
 
         claimed_items.find_each do |receipt_item|
           receipt_item.with_lock do

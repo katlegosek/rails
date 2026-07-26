@@ -4,6 +4,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def create
     bill = find_bill_for_current_mobile_user(params[:bill_id])
     return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
 
     attributes = prepared_receipt_item_attributes(bill, receipt_item_params)
     item = bill.receipt_items.build(attributes)
@@ -19,6 +20,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def update
     item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless item
+    ensure_bill_mutable!(item.bill)
 
     attributes = prepared_receipt_item_attributes(item.bill, receipt_item_params, item: item)
 
@@ -32,6 +34,7 @@ class Api::Mobile::V1::ReceiptItemsController < Api::Mobile::V1::BaseController
   def destroy
     item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless item
+    ensure_bill_mutable!(item.bill)
 
     bill = item.bill
     item_json = Api::Mobile::V1::ReceiptItemSerializer.new(item).as_json

@@ -133,6 +133,16 @@ RSpec.describe "Bills API", type: :request do
         expect(response).to have_http_status(:not_found)
         expect(other_bill.reload).to be_session_draft
       end
+
+      it "does not reopen a finalized bill" do
+        bill.update!(session_status: :finalized, status: :completed, finalized_at: Time.current)
+
+        post "/api/mobile/v1/bills/#{bill.id}/confirm"
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+        expect(bill.reload).to be_session_finalized
+      end
     end
 
     describe "GET /api/mobile/v1/bills/:id/room" do
@@ -175,6 +185,29 @@ RSpec.describe "Bills API", type: :request do
 
         expect(response).to have_http_status(:not_found)
         expect(other_bill.reload).not_to be_session_finalized
+      end
+
+      it "requires the bill room to be open" do
+        post "/api/mobile/v1/bills/#{bill.id}/finalize"
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+        expect(bill.reload).to be_session_draft
+      end
+
+      it "is idempotent for a finalized bill" do
+        finalized_at = 1.hour.ago
+        bill.update!(
+          session_status: :finalized,
+          status: :completed,
+          finalized_at: finalized_at
+        )
+
+        post "/api/mobile/v1/bills/#{bill.id}/finalize"
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body.dig("bill", "session_status")).to eq("finalized")
+        expect(bill.reload.finalized_at).to be_within(1.second).of(finalized_at)
       end
     end
   end

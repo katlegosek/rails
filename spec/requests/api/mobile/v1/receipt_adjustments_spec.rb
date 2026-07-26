@@ -41,5 +41,17 @@ RSpec.describe "Receipt adjustments API", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
     end
+
+    it "does not create adjustments after finalization" do
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/receipts/#{receipt.id}/adjustments", params: {
+        receipt_adjustment: { label: "Tip", kind: "tip", amount_cents: 500 }
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(receipt.receipt_adjustments).to be_empty
+    end
   end
 end

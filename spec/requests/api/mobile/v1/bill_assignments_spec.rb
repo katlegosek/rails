@@ -44,6 +44,16 @@ RSpec.describe "Bill assignments API", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
     end
+
+    it "does not split assignments after finalization" do
+      bill.update!(session_status: :finalized)
+
+      post "/api/mobile/v1/bills/#{bill.id}/split_unassigned_equally"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(unassigned_item.item_assignments).to be_empty
+    end
   end
 
   describe "POST /api/mobile/v1/bills/:id/split_all_equally" do
@@ -115,6 +125,25 @@ RSpec.describe "Bill assignments API", type: :request do
 
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
+    end
+
+    it "does not clear assignments after finalization" do
+      bill = create(:bill, user: user, session_status: :finalized)
+      receipt = create(:receipt, bill: bill)
+      item = create(:receipt_item, bill: bill, receipt: receipt, total_cents: 3_000)
+      participant = create(:bill_participant, bill: bill)
+      assignment = create(
+        :item_assignment,
+        receipt_item: item,
+        bill_participant: participant,
+        amount_cents: 3_000
+      )
+
+      delete "/api/mobile/v1/bills/#{bill.id}/assignments"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(ItemAssignment.exists?(assignment.id)).to be(true)
     end
   end
 end

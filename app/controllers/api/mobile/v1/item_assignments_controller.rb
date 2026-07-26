@@ -4,6 +4,7 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
   def update
     receipt_item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless receipt_item
+    ensure_bill_mutable!(receipt_item.bill)
 
     ReceiptItems::ReplaceAssignments.call(
       receipt_item: receipt_item,
@@ -17,6 +18,7 @@ class Api::Mobile::V1::ItemAssignmentsController < Api::Mobile::V1::BaseControll
   def destroy
     receipt_item = find_receipt_item_for_current_mobile_user
     return render_not_found("Receipt item not found") unless receipt_item
+    ensure_bill_mutable!(receipt_item.bill)
 
     ReceiptItems::ReplaceAssignments.call(
       receipt_item: receipt_item,

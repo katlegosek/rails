@@ -16,6 +16,7 @@ class Api::Mobile::V1::BaseController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
   rescue_from ReceiptItems::ReplaceAssignments::Invalid, with: :handle_service_validation_error
   rescue_from BillAssignments::Invalid, with: :handle_service_validation_error
+  rescue_from BillRooms::RoomClosed, with: :render_bill_locked
 
   private
 
@@ -110,6 +111,21 @@ class Api::Mobile::V1::BaseController < ApplicationController
       message: message,
       details: details,
       status: :unprocessable_content
+    )
+  end
+
+  def bill_locked?(bill)
+    bill.session_finalized? || bill.session_closed?
+  end
+
+  def ensure_bill_mutable!(bill)
+    raise BillRooms::RoomClosed if bill_locked?(bill)
+  end
+
+  def render_bill_locked(_exception = nil)
+    render_validation_details(
+      { bill: [ "is already finalized" ] },
+      message: "Finalized bills cannot be changed."
     )
   end
 

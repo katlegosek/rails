@@ -4,6 +4,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   def create
     receipt = find_receipt_for_current_mobile_user
     return render_not_found("Receipt not found") unless receipt
+    ensure_bill_mutable!(receipt.bill)
 
     adjustment = receipt.receipt_adjustments.build(adjustment_attributes_for_create(receipt))
 
@@ -17,6 +18,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   def update
     adjustment = find_adjustment_for_current_mobile_user
     return render_not_found("Receipt adjustment not found") unless adjustment
+    ensure_bill_mutable!(adjustment.receipt.bill)
 
     if adjustment.update(adjustment_params)
       return render_adjustment_response(adjustment, adjustment.receipt.bill)
@@ -28,6 +30,7 @@ class Api::Mobile::V1::ReceiptAdjustmentsController < Api::Mobile::V1::BaseContr
   def destroy
     adjustment = find_adjustment_for_current_mobile_user
     return render_not_found("Receipt adjustment not found") unless adjustment
+    ensure_bill_mutable!(adjustment.receipt.bill)
 
     bill = adjustment.receipt.bill
     adjustment_json = Api::Mobile::V1::ReceiptAdjustmentSerializer.new(adjustment).as_json

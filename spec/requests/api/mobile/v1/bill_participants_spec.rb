@@ -17,6 +17,18 @@ RSpec.describe "Bill participants API", type: :request do
       expect(body["bill_summary"]["participants"].size).to eq(1)
     end
 
+    it "does not allow a manual participant to replace the host" do
+      host = create(:bill_participant, bill: bill, is_host: true)
+
+      post "/api/mobile/v1/bills/#{bill.id}/participants", params: {
+        participant: { name: "Sam", is_host: true }
+      }, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("participant", "is_host")).to be(false)
+      expect(host.reload).to be_is_host
+    end
+
     it "returns validation_error when name is missing" do
       post "/api/mobile/v1/bills/#{bill.id}/participants", params: {
         participant: { name: "" }
@@ -94,6 +106,17 @@ RSpec.describe "Bill participants API", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
       expect(participant.reload.name).to eq("Sam")
+    end
+
+    it "allows settlement updates after finalization" do
+      bill.update!(session_status: :finalized)
+
+      patch "/api/mobile/v1/bill_participants/#{participant.id}", params: {
+        participant: { settled: true }
+      }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(participant.reload).to be_settled
     end
   end
 

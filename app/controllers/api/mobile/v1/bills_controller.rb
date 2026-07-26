@@ -44,6 +44,7 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   def confirm
     bill = find_bill_for_room
     return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
 
     if bill.receipt && !bill.receipt.ready? && !bill.receipt.confirmed?
       return render_validation_details(
@@ -53,6 +54,8 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
     end
 
     Bill.transaction do
+      bill.lock!
+      ensure_bill_mutable!(bill)
       bill.receipt&.confirmed! unless bill.receipt&.confirmed?
       bill.ensure_share_token!
       ensure_host_participant!(bill)
@@ -76,12 +79,24 @@ class Api::Mobile::V1::BillsController < Api::Mobile::V1::BaseController
   def finalize
     bill = find_bill_for_room
     return render_not_found("Bill not found") unless bill
+    return render json: Api::Mobile::V1::BillRoomSerializer.new(bill).as_json if bill.session_finalized?
+    ensure_bill_mutable!(bill)
 
-    bill.update!(
-      session_status: :finalized,
-      status: :completed,
-      finalized_at: bill.finalized_at || Time.current
-    )
+    unless bill.session_open?
+      return render_validation_details(
+        { bill: [ "must be open before it can be finalized" ] },
+        message: "Open this bill room before finalizing it."
+      )
+    end
+
+    bill.with_lock do
+      ensure_bill_mutable!(bill)
+      bill.update!(
+        session_status: :finalized,
+        status: :completed,
+        finalized_at: bill.finalized_at || Time.current
+      )
+    end
 
     render json: Api::Mobile::V1::BillRoomSerializer.new(bill.reload).as_json
   end

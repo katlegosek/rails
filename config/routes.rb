@@ -77,6 +77,7 @@ Rails.application.routes.draw do
             delete :assignments, to: "bill_assignments#clear"
           end
           resources :participants, only: %i[create], controller: "bill_participants"
+          resources :receipts, only: %i[create], controller: "receipts"
           resources :receipt_items, only: %i[create], controller: "receipt_items"
           resources :receipt_images, only: %i[create], controller: "receipt_images"
         end

@@ -8,7 +8,7 @@ class Api::Public::V1::BaseController < ApplicationController
   rescue_from StandardError, with: :handle_internal_error
   rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
-  rescue_from BillRooms::RemoveParticipant::RoomClosed, with: :render_room_closed
+  rescue_from BillRooms::RoomClosed, with: :render_room_closed
 
   private
 

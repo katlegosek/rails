@@ -44,5 +44,18 @@ RSpec.describe "Item assignments API", type: :request do
       expect(response).to have_http_status(:not_found)
       expect(api_error(response.parsed_body)["code"]).to eq("not_found")
     end
+
+    it "does not replace assignments after finalization" do
+      bill.update!(session_status: :finalized)
+
+      put "/api/mobile/v1/receipt_items/#{item.id}/assignments", params: {
+        participant_ids: [ katlego.id ],
+        split_method: "equal"
+      }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error(response.parsed_body)["code"]).to eq("validation_error")
+      expect(item.item_assignments).to be_empty
+    end
   end
 end

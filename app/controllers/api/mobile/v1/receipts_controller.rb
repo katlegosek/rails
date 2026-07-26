@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
+  def create
+    bill = current_mobile_user.bills.find_by(id: params[:bill_id])
+    return render_not_found("Bill not found") unless bill
+    ensure_bill_mutable!(bill)
+
+    receipt = bill.receipt || bill.build_receipt
+    receipt.assign_attributes(manual_receipt_params)
+    receipt.status = :ready
+
+    if receipt.save
+      return render json: receipt_show_json(receipt), status: receipt.previously_new_record? ? :created : :ok
+    end
+
+    render_validation_errors(receipt)
+  end
+
   def show
     receipt = find_receipt_for_current_mobile_user
     return render_not_found("Receipt not found") unless receipt
@@ -14,6 +30,7 @@ class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
   def confirm
     receipt = find_receipt_for_current_mobile_user
     return render_not_found("Receipt not found") unless receipt
+    ensure_bill_mutable!(receipt.bill)
 
     unless receipt.ready? || receipt.confirmed?
       return render_validation_details(
@@ -28,6 +45,20 @@ class Api::Mobile::V1::ReceiptsController < Api::Mobile::V1::BaseController
   end
 
   private
+
+  def manual_receipt_params
+    params.require(:receipt).permit(
+      :merchant_name,
+      :receipt_date,
+      :subtotal_cents,
+      :total_cents,
+      :currency,
+      :tax_cents,
+      :service_fee_cents,
+      :tip_cents,
+      :discount_cents
+    )
+  end
 
   def find_receipt_for_current_mobile_user
     Receipt
